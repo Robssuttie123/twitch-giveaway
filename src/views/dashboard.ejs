@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Giveaway Dashboard</title>
+  
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #4facfe, #8e44ad);
+      font-family: 'Montserrat', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 2em;
+      font-size: 2.5em;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .dashboard-content {
+      margin-top: 2em;
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2em;
+    }
+
+    .entries-count {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .entry-list-box {
+      padding: 0.8em 1em;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      width: 80%;
+      max-width: 400px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .entry-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .entry-list li {
+      text-align: left;
+      padding: 0.3em 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 0.8em;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button, select, input[type="text"] {
+      padding: 0.5em 1em;
+      font-size: 1em;
+      border-radius: 6px;
+      border: none;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .green-button {
+      background-color: #2ecc71;
+    }
+
+    .green-button:hover {
+      background-color: #27ae60;
+    }
+
+    .overlay-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      justify-content: center;
+    }
+
+    .overlay-box input {
+      width: 280px;
+    }
+
+    .winner-name {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: gold;
+      margin-top: 0.5em;
+    }
+
+    .warning-box {
+      color: #ffc107;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 2em 1em 1em;
+      font-size: 0.9em;
+      opacity: 0.8;
+      text-align: center;
+    }
+
+    .copy-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      background: rgba(46, 204, 113, 0.95);
+      color: white;
+      padding: 1em 2em;
+      border-radius: 10px;
+      font-size: 1.2em;
+      font-weight: bold;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 9999;
+    }
+
+    .copy-toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body>
+  <h1>GIVEAWAY DASHBOARD</h1>
+
+  <div class="dashboard-content">
+    <div class="entry-list-box">
+      <div class="entries-count">Entries: <%= entries.length %></div>
+      <ul class="entry-list">
+        <% if (entries.length === 0) { %>
+          <li class="no-entries">No entries yet</li>
+        <% } else { %>
+          <% entries.forEach(entry => { %>
+            <li><%= entry.username %></li>
+          <% }) %>
+        <% } %>
+      </ul>
+    </div>
+
+    <div class="button-row">
+      <form action="/dashboard/restart" method="POST">
+        <button type="submit">Restart Giveaway</button>
+      </form>
+
+      <form action="/dashboard/pick-winners" method="POST" style="display: flex; align-items: center; gap: 0.5em;">
+        <button class="green-button" type="submit">Pick Winner(s)</button>
+        <select id="numWinners" name="numWinners">
+          <% for (let i = 1; i <= 10; i++) { %>
+            <option value="<%= i %>"><%= i %></option>
+          <% } %>
+        </select>
+      </form>
+    </div>
+
+    <form action="/dashboard/command" method="POST" class="button-row">
+      <input type="text" name="command" autocomplete="off" value="<%= user.command %>" placeholder="Enter custom command" style="width: 100px;">
+      <button type="submit">Set Command</button>
+    </form>
+
+    <% if (commandUpdated) { %>
+      <div id="commandSuccess" style="color: #2ecc71; font-weight: bold; margin-top: 0.5em;">
+        ✅ <%= commandUpdated %>
+      </div>
+    <% } %>
+
+    <% if (warning) { %>
+      <div class="warning-box"><%= warning %></div>
+    <% } %>
+
+    <% if (winners.length > 0) { %>
+      <div style="margin-top: 1em;">
+        <div style="font-size: 1.3em; font-weight: bold;">🎉 Winner<%= winners.length > 1 ? 's' : '' %>:</div>
+        <% winners.forEach(name => { %>
+          <div class="winner-name"><%= name %></div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <footer>
+    <div style="margin-bottom: 1.5em;">
+      <p>Your OBS Overlay URL:</p>
+      <div class="overlay-box">
+        <input type="password" id="displayMasked" value="http://localhost:3000/overlay/<%= encryptedTwitchId %>" readonly>
+        <input type="hidden" id="realOverlayUrl" value="http://localhost:3000/overlay/<%= encryptedTwitchId %>">
+        <button type="button" onclick="copyRealUrl()">Copy</button>
+      </div>
+    </div>
+
+    <form action="/logout" method="POST">
+      <button type="submit">Logout</button>
+    </form>
+    <p style="margin-top: 1em;">Created by Robssuttie123</p>
+  </footer>
+
+  <div id="copyToast" class="copy-toast">Overlay URL copied!</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    socket.emit('joinRoom', '<%= encryptedTwitchId %>');
+
+    socket.on('entryUpdate', (data) => {
+      const list = document.querySelector('.entry-list');
+      const noEntries = document.querySelector('.no-entries');
+      if (noEntries) noEntries.remove();
+
+      const li = document.createElement('li');
+      li.textContent = data.entry;
+      list.appendChild(li);
+
+      const count = document.querySelector('.entries-count');
+      count.textContent = `Entries: ${list.children.length}`;
+    });
+
+    socket.on('winnersAnnounced', (data) => {
+      data.winners.forEach(winner => {
+        const allEntries = document.querySelectorAll('.entry-list li');
+        allEntries.forEach(li => {
+          if (li.textContent === winner) {
+            li.style.color = 'gold';
+            li.style.fontWeight = 'bold';
+          }
+        });
+      });
+    });
+
+    const successEl = document.getElementById('commandSuccess');
+    if (successEl) {
+      setTimeout(() => {
+        successEl.style.transition = 'opacity 1s';
+        successEl.style.opacity = '0';
+        setTimeout(() => successEl.remove(), 1000);
+      }, 5000);
+    }
+
+    function copyRealUrl() {
+      const hiddenInput = document.getElementById('realOverlayUrl');
+      const temp = document.createElement('input');
+      temp.value = hiddenInput.value;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+
+      const toast = document.getElementById('copyToast');
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+	
+	
+	
+  </script>
+</body>
+</html>

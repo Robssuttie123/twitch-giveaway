@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Giveaway Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+      font-family: 'Montserrat', sans-serif;
+      color: white;
+      font-size: 2.5em;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 2em;
+      box-sizing: border-box;
+    }
+
+    .entry-count {
+      font-weight: bold;
+      margin-bottom: 0.3em;
+      text-shadow: 0 0 6px rgba(0,0,0,0.6);
+    }
+
+    .divider {
+      width: 80%;
+      height: 4px;
+      background: linear-gradient(90deg, #a64ff0, #d77aff, #a64ff0);
+      border-radius: 2px;
+      margin-bottom: 1em;
+      box-shadow: 0 0 10px #a64ff0, 0 0 20px #a64ff0;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 10px #a64ff0, 0 0 20px #a64ff0;
+      }
+      50% {
+        box-shadow: 0 0 15px #d77aff, 0 0 30px #d77aff;
+      }
+    }
+
+    .user-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.6em 1em;
+      max-width: 90%;
+      font-size: 0.9em;
+    }
+
+    .user {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.3em 0.6em;
+      border-radius: 6px;
+      color: white;
+      text-shadow: 0 0 5px rgba(0,0,0,0.6);
+      font-weight: 600;
+      animation: popIn 0.4s ease-out forwards;
+      opacity: 0;
+      transform: scale(0.8);
+    }
+
+    @keyframes popIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    #winnerBanner {
+      margin-top: 1.5em;
+      color: gold;
+      font-size: 1.2em;
+      font-weight: bold;
+      text-shadow: 0 0 10px gold, 0 0 30px orange;
+      display: none;
+      max-width: 90%;
+    }
+	
+	.overlay-branding {
+	  font-size: 0.8em;
+	  color: rgba(255, 255, 255, 0.6);
+	  margin-bottom: 0.5em;
+	  text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+	}
+
+	.overlay-branding a {
+	  color: #ffd700;
+	  text-decoration: none;
+	  font-weight: bold;
+	}
+
+	.overlay-branding a:hover {
+	  text-decoration: underline;
+	}
+	
+  </style>
+</head>
+<body>
+  <div class="overlay-branding">Running on <a href="https://yourdomain.com" target="_blank">TheSimpleGiveaway.com</a></div>
+  <div class="entry-count" id="entryCount">Entries: 0</div>
+  <div class="divider"></div>
+  <div class="user-list" id="userList"></div>
+  <div id="winnerBanner"></div>
+
+  <!-- ✅ Load confetti BEFORE your script runs -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io(window.location.origin);
+    const encryptedId = '<%= twitchId %>';
+    socket.emit('joinRoom', encryptedId);
+
+    const userList = document.getElementById('userList');
+    const entryCount = document.getElementById('entryCount');
+    const winnerBanner = document.getElementById('winnerBanner');
+    const seen = new Set();
+
+    // Load current entries
+    fetch(`/api/overlay/${encryptedId}/entries`)
+      .then(res => res.json())
+      .then(data => {
+        data.entries.forEach(name => {
+          if (!seen.has(name)) {
+            seen.add(name);
+            const span = document.createElement('span');
+            span.className = 'user';
+            span.textContent = name;
+            userList.appendChild(span);
+          }
+        });
+        entryCount.textContent = `Entries: ${seen.size}`;
+      });
+
+    // Handle new entry
+    socket.on('entryUpdate', (data) => {
+      const name = data.entry;
+      if (seen.has(name)) return;
+      seen.add(name);
+
+      const span = document.createElement('span');
+      span.className = 'user';
+      span.textContent = name;
+      userList.appendChild(span);
+
+      entryCount.textContent = `Entries: ${seen.size}`;
+    });
+
+    // Handle reset
+    socket.on('giveawayReset', () => {
+      seen.clear();
+      userList.innerHTML = '';
+      entryCount.textContent = 'Entries: 0';
+      winnerBanner.style.display = 'none';
+      winnerBanner.textContent = '';
+    });
+
+    // Show winner(s) cleanly + confetti
+    socket.on('winnersAnnounced', (data) => {
+      if (data.winners.length === 1) {
+        winnerBanner.textContent = `🎉 Winner: ${data.winners[0]} 🎉`;
+      } else {
+        winnerBanner.textContent = `🎉 Winners: ${data.winners.join(', ')} 🎉`;
+      }
+      winnerBanner.style.display = 'block';
+
+      // 🎉 Launch confetti
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    });
+  </script>
+</body>
+</html>

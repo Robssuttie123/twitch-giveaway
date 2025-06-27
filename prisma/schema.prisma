@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  twitchId     String   @unique
+  username     String
+  command      String
+  accessToken  String
+  refreshToken String
+  lastLoginAt  DateTime @updatedAt
+  giveaways    Giveaway[]
+  createdAt    DateTime @default(now())
+}
+
+model Giveaway {
+  id        Int      @id @default(autoincrement()) // Primary key is INT
+  title     String
+  command   String
+  isActive  Boolean  @default(true)
+  userId    String // FK to User.id (STRING)
+  user      User     @relation(fields: [userId], references: [id])
+  entries   Entry[]
+  createdAt DateTime @default(now())
+}
+
+model Entry {
+  id         Int      @id @default(autoincrement())
+  twitchId   String
+  username   String
+  giveawayId Int // FK to Giveaway.id (INT)
+  giveaway   Giveaway @relation(fields: [giveawayId], references: [id])
+
+  @@unique([giveawayId, username])
+}
