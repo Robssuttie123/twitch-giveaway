@@ -35,18 +35,22 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }));
 
-// ⬇️ Use connect-pg-simple for sessions
 app.use(session({
   store: new pgSession({
-    conString: process.env.DATABASE_URL, // uses same DB as Prisma
-    tableName: 'user_sessions', // optional custom table name
+    conObject: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false 
+      }
+    },
+    tableName: 'user_sessions',
     createTableIfMissing: true
   }),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // send cookie over HTTPS only
+    secure: process.env.NODE_ENV === 'production',
     maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
   }
 }));
