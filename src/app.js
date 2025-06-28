@@ -8,8 +8,20 @@ const io = require('./server'); // import it from server.js
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
-const app = express();
 const overlayRoutes = require('./routes/overlay');
+
+const app = express();
+
+app.use((req, res, next) => {
+  const isHttps = req.headers['x-forwarded-proto'] === 'https';
+  const isWww = req.hostname.startsWith('www.');
+
+  if (!isHttps || isWww) {
+    return res.redirect(301, `https://thesimplegiveaway.com${req.url}`);
+  }
+  next();
+});
+
 app.use('/', overlayRoutes);
 app.use(express.static('public'));
 
