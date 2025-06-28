@@ -21,7 +21,6 @@ async function refreshTwitchToken(user) {
     const newAccessToken = response.data.access_token;
     const newRefreshToken = response.data.refresh_token;
 
-    // Save new tokens to DB
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -77,10 +76,7 @@ async function connectClient(user, twitchUsername) {
 async function startChatListenerForStreamer(twitchUsername, twitchId) {
   if (connectedClients[twitchUsername]) return;
 
-  const user = await prisma.user.findUnique({
-    where: { twitchId }
-  });
-
+  const user = await prisma.user.findUnique({ where: { twitchId } });
   if (!user || !user.accessToken) return;
 
   const client = await connectClient(user, twitchUsername);
@@ -116,19 +112,27 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
     });
     if (alreadyEntered) return;
 
-    await prisma.entry.create({
-      data: {
-        username,
-        twitchId,
-        giveawayId: activeGiveaway.id
+    try {
+      await prisma.entry.create({
+        data: {
+          username,
+          twitchId,
+          giveawayId: activeGiveaway.id
+        }
+      });
+
+      const io = getIO();
+      const encryptedTwitchId = encrypt(twitchId);
+      io.to(encryptedTwitchId).emit('entryUpdate', { entry: username });
+
+      console.log(`${username} entered the giveaway for ${channel}`);
+    } catch (err) {
+      if (err.code === 'P2002') {
+        console.log(`⚠️ Duplicate entry prevented for ${username} in giveaway ${activeGiveaway.id}`);
+      } else {
+        console.error('❌ Error creating entry:', err);
       }
-    });
-
-    const io = getIO();
-    const encryptedTwitchId = encrypt(twitchId);
-    io.to(encryptedTwitchId).emit('entryUpdate', { entry: username });
-
-    console.log(`${username} entered the giveaway for ${channel}`);
+    }
   });
 
   connectedClients[twitchUsername] = client;
