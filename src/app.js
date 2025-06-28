@@ -11,6 +11,7 @@ const dashboardRoutes = require('./routes/dashboard');
 const overlayRoutes = require('./routes/overlay');
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use((req, res, next) => {
   const isHttps = req.headers['x-forwarded-proto'] === 'https';
