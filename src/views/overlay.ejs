@@ -75,15 +75,23 @@
       }
     }
 
-    #winnerBanner {
-      margin-top: 1.5em;
-      color: gold;
-      font-size: 1.2em;
-      font-weight: bold;
-      text-shadow: 0 0 10px gold, 0 0 30px orange;
-      display: none;
-      max-width: 90%;
-    }
+	#winnerBanner {
+	  position: absolute;
+	  top: 50%;
+	  left: 50%;
+	  transform: translate(-50%, -50%);
+	  color: gold;
+	  font-size: 2em;
+	  font-weight: bold;
+	  text-shadow: 0 0 10px gold, 0 0 30px orange;
+	  background: rgba(0, 0, 0, 0.5);
+	  padding: 0.5em 1em;
+	  border-radius: 12px;
+	  z-index: 999;
+	  display: none;
+	  max-width: 90%;
+	  text-align: center;
+	}
 	
 	.overlay-branding {
 	  font-size: 0.8em;
