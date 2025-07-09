@@ -6,16 +6,15 @@ const key = crypto.scryptSync(secret, 'streamer-salt', 32); // 32 bytes for AES-
 const iv = Buffer.alloc(16, 0); // Static IV for AES-256-CBC
 
 function encrypt(text) {
-  const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, IV);
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
   let encrypted = cipher.update(text, 'utf8', 'base64');
   encrypted += cipher.final('base64');
-  return encodeURIComponent(encrypted); // ← this is key!
+  return encrypted;
 }
 
 function decrypt(encrypted) {
-  const decoded = decodeURIComponent(encrypted); // ← decode before decrypting
-  const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY, IV);
-  let decrypted = decipher.update(decoded, 'base64', 'utf8');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  let decrypted = decipher.update(encrypted, 'base64', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
 }
