@@ -6,7 +6,7 @@
   <style>
     body {
       margin: 0;
-      background: transparent;
+      background: white;
       font-family: 'Montserrat', sans-serif;
       color: white;
       font-size: 2.5em;
@@ -54,6 +54,8 @@
       gap: 0.6em 1em;
       max-width: 90%;
       font-size: 0.9em;
+      transition: opacity 0.4s ease;
+      min-height: 8em;
     }
 
     .user {
@@ -75,49 +77,53 @@
       }
     }
 
-	#winnerBanner {
-	  display: none;
-	  margin-top: 2em;
-	  color: gold;
-	  font-size: 2em;
-	  font-weight: bold;
-	  text-shadow: 0 0 12px gold, 0 0 30px orange;
-	  animation: winnerFadeIn 1.5s ease-out forwards;
-	  z-index: 10;
-	}
-	
-	@keyframes winnerFadeIn {
-	  from {
-	    opacity: 0;
-	    transform: scale(0.9);
-	  }
-	  to {
-	    opacity: 1;
-	    transform: scale(1);
-	  }
-	}
-	
-	.overlay-branding {
-	  font-size: 0.8em;
-	  color: white;
-	  margin-bottom: 0.5em;
-	  text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
-	}
+    #winnerBanner {
+      display: none;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: gold;
+      font-size: 2.5em;
+      font-weight: bold;
+      text-shadow: 0 0 12px gold, 0 0 30px orange;
+      animation: winnerFadeIn 1.5s ease-out forwards;
+      z-index: 10;
+      background: none;
+      border: none;
+    }
 
-	.overlay-branding a {
-	  color: #ffd700;
-	  text-decoration: none;
-	  font-weight: bold;
-	}
+    @keyframes winnerFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translate(-50%, -50%);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translate(-50%, -50%);
+      }
+    }
 
-	.overlay-branding a:hover {
-	  text-decoration: underline;
-	}
-	
+    .overlay-branding {
+      font-size: 0.8em;
+      color: white;
+      margin-bottom: 0.5em;
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .overlay-branding a {
+      color: #ffd700;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .overlay-branding a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
-  <div class="overlay-branding">Running on <a href="https://yourdomain.com" target="_blank">TheSimpleGiveaway.com</a></div>
+  <div class="overlay-branding">Running on <a href="https://thesimplegiveaway.com" target="_blank">TheSimpleGiveaway.com</a></div>
   <div class="entry-count" id="entryCount">Entries: 0</div>
   <div class="divider"></div>
   <div class="user-list" id="userList"></div>
@@ -134,7 +140,44 @@
     const userList = document.getElementById('userList');
     const entryCount = document.getElementById('entryCount');
     const winnerBanner = document.getElementById('winnerBanner');
+
     const seen = new Set();
+    const entries = [];
+    const entriesPerPage = 40;
+    let currentPage = 0;
+    let pageInterval;
+
+    function renderPage(pageIndex) {
+      userList.innerHTML = '';
+      const start = pageIndex * entriesPerPage;
+      const end = start + entriesPerPage;
+      const pageEntries = entries.slice(start, end);
+
+      pageEntries.forEach(name => {
+        const span = document.createElement('span');
+        span.className = 'user';
+        span.textContent = name;
+        userList.appendChild(span);
+      });
+
+      entryCount.textContent = `Entries: ${entries.length}`;
+    }
+
+    function startAutoPaging() {
+      if (pageInterval) clearInterval(pageInterval);
+      if (entries.length <= entriesPerPage) {
+        renderPage(0);
+        return;
+      }
+
+      renderPage(0);
+      currentPage = 1;
+
+      pageInterval = setInterval(() => {
+        renderPage(currentPage);
+        currentPage = (currentPage + 1) % Math.ceil(entries.length / entriesPerPage);
+      }, 10000);
+    }
 
     // Load current entries
     fetch(`/api/overlay/${encryptedId}/entries`)
@@ -143,60 +186,52 @@
         data.entries.forEach(name => {
           if (!seen.has(name)) {
             seen.add(name);
-            const span = document.createElement('span');
-            span.className = 'user';
-            span.textContent = name;
-            userList.appendChild(span);
+            entries.push(name);
           }
         });
-        entryCount.textContent = `Entries: ${seen.size}`;
+        startAutoPaging();
       });
 
-    // Handle new entry
+    // Live new entries
     socket.on('entryUpdate', (data) => {
       const name = data.entry;
       if (seen.has(name)) return;
       seen.add(name);
-
-      const span = document.createElement('span');
-      span.className = 'user';
-      span.textContent = name;
-      userList.appendChild(span);
-
-      entryCount.textContent = `Entries: ${seen.size}`;
+      entries.push(name);
+      startAutoPaging();
     });
 
-    // Handle reset
+    // Giveaway reset
     socket.on('giveawayReset', () => {
       seen.clear();
+      entries.length = 0;
       userList.innerHTML = '';
       entryCount.textContent = 'Entries: 0';
       winnerBanner.style.display = 'none';
       winnerBanner.textContent = '';
+      if (pageInterval) clearInterval(pageInterval);
     });
 
-// Show winner(s) cleanly + confetti    
-socket.on('winnersAnnounced', (data) => {
-  // Hide entries
-  userList.innerHTML = '';
-  entryCount.textContent = '';
+    // Show winner(s) and hide user list
+    socket.on('winnersAnnounced', (data) => {
+      if (pageInterval) clearInterval(pageInterval);
+      userList.innerHTML = '';
+      entryCount.textContent = '';
 
-  // Show winner(s)
-  if (data.winners.length === 1) {
-    winnerBanner.textContent = `🎉 Winner: ${data.winners[0]} 🎉`;
-  } else {
-    winnerBanner.textContent = `🎉 Winners: ${data.winners.join(', ')} 🎉`;
-  }
+      if (data.winners.length === 1) {
+        winnerBanner.textContent = `🎉 Winner: ${data.winners[0]} 🎉`;
+      } else {
+        winnerBanner.textContent = `🎉 Winners: ${data.winners.join(', ')} 🎉`;
+      }
 
-  winnerBanner.style.display = 'block';
+      winnerBanner.style.display = 'block';
 
-  // 🎉 Confetti
-  confetti({
-    particleCount: 180,
-    spread: 100,
-    origin: { y: 0.6 }
-  });
-});
+      confetti({
+        particleCount: 180,
+        spread: 100,
+        origin: { y: 0.6 }
+      });
+    });
   </script>
 </body>
 </html>
