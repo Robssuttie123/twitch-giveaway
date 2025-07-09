@@ -104,6 +104,13 @@
       }
     }
 
+    .page-indicator {
+      font-size: 0.6em;
+      color: white;
+      text-shadow: 0 0 6px rgba(0,0,0,0.5);
+      margin-top: 0.4em;
+    }
+
     .overlay-branding {
       font-size: 0.8em;
       color: white;
@@ -127,6 +134,7 @@
   <div class="entry-count" id="entryCount">Entries: 0</div>
   <div class="divider"></div>
   <div class="user-list" id="userList"></div>
+  <div id="pageIndicator" class="page-indicator"></div>
   <div id="winnerBanner"></div>
 
   <!-- ✅ Load confetti BEFORE your script runs -->
@@ -139,6 +147,7 @@
 
     const userList = document.getElementById('userList');
     const entryCount = document.getElementById('entryCount');
+    const pageIndicator = document.getElementById('pageIndicator');
     const winnerBanner = document.getElementById('winnerBanner');
 
     const seen = new Set();
@@ -161,6 +170,13 @@
       });
 
       entryCount.textContent = `Entries: ${entries.length}`;
+      if (entries.length > entriesPerPage) {
+        const totalPages = Math.ceil(entries.length / entriesPerPage);
+        pageIndicator.textContent = `Page ${pageIndex + 1} of ${totalPages}`;
+        pageIndicator.style.display = 'block';
+      } else {
+        pageIndicator.style.display = 'none';
+      }
     }
 
     function startAutoPaging() {
@@ -209,6 +225,7 @@
       entryCount.textContent = 'Entries: 0';
       winnerBanner.style.display = 'none';
       winnerBanner.textContent = '';
+      pageIndicator.style.display = 'none';
       if (pageInterval) clearInterval(pageInterval);
     });
 
@@ -217,6 +234,7 @@
       if (pageInterval) clearInterval(pageInterval);
       userList.innerHTML = '';
       entryCount.textContent = '';
+      pageIndicator.style.display = 'none';
 
       if (data.winners.length === 1) {
         winnerBanner.textContent = `🎉 Winner: ${data.winners[0]} 🎉`;
