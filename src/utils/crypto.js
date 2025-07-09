@@ -1,20 +1,21 @@
 const crypto = require('crypto');
 require('dotenv').config();
 
-const secret = process.env.OVERLAY_SECRET || 'supersecretpassword';
-const key = crypto.scryptSync(secret, 'streamer-salt', 32); // 32 bytes for AES-256
-const iv = Buffer.alloc(16, 0); // Static IV for AES-256-CBC
+const ALGORITHM = 'aes-256-cbc';
+const SECRET_KEY = crypto.createHash('sha256').update(process.env.ENCRYPTION_SECRET).digest(); // 32 bytes
+const IV = Buffer.alloc(16, 0); // Initialization vector (16 bytes of 0s)
 
 function encrypt(text) {
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, IV);
   let encrypted = cipher.update(text, 'utf8', 'base64');
   encrypted += cipher.final('base64');
-  return encrypted;
+  return encodeURIComponent(encrypted); // URL-safe
 }
 
 function decrypt(encrypted) {
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-  let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+  const decoded = decodeURIComponent(encrypted); // Decode URL-safe base64
+  const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY, IV);
+  let decrypted = decipher.update(decoded, 'base64', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
 }
