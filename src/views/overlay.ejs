@@ -65,6 +65,8 @@
       color: white;
       text-shadow: 0 0 5px rgba(0,0,0,0.6);
       font-weight: 600;
+      font-size: 0.8em;
+      line-height: 1em;
       animation: popIn 0.4s ease-out forwards;
       opacity: 0;
       transform: scale(0.8);
@@ -84,7 +86,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
       color: gold;
-      font-size: 2.5em;
+      font-size: 1.8em;
       font-weight: bold;
       text-shadow: 0 0 12px gold, 0 0 30px orange;
       animation: winnerFadeIn 1.5s ease-out forwards;
@@ -137,7 +139,6 @@
   <div id="pageIndicator" class="page-indicator"></div>
   <div id="winnerBanner"></div>
 
-  <!-- ✅ Load confetti BEFORE your script runs -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -195,7 +196,6 @@
       }, 10000);
     }
 
-    // Load current entries
     fetch(`/api/overlay/${encryptedId}/entries`)
       .then(res => res.json())
       .then(data => {
@@ -208,7 +208,6 @@
         startAutoPaging();
       });
 
-    // Live new entries
     socket.on('entryUpdate', (data) => {
       const name = data.entry;
       if (seen.has(name)) return;
@@ -217,7 +216,6 @@
       startAutoPaging();
     });
 
-    // Giveaway reset
     socket.on('giveawayReset', () => {
       seen.clear();
       entries.length = 0;
@@ -229,18 +227,15 @@
       if (pageInterval) clearInterval(pageInterval);
     });
 
-    // Show winner(s) and hide user list
     socket.on('winnersAnnounced', (data) => {
       if (pageInterval) clearInterval(pageInterval);
       userList.innerHTML = '';
       entryCount.textContent = '';
       pageIndicator.style.display = 'none';
 
-      if (data.winners.length === 1) {
-        winnerBanner.textContent = `🎉 Winner: ${data.winners[0]} 🎉`;
-      } else {
-        winnerBanner.textContent = `🎉 Winners: ${data.winners.join(', ')} 🎉`;
-      }
+      winnerBanner.textContent = data.winners.length === 1
+        ? `🎉 Winner: ${data.winners[0]} 🎉`
+        : `🎉 Winners: ${data.winners.join(', ')} 🎉`;
 
       winnerBanner.style.display = 'block';
 
