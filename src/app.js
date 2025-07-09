@@ -14,6 +14,7 @@ const overlayRoutes = require('./routes/overlay');
 const app = express();
 app.set('trust proxy', 1);
 
+app.use(express.static(path.join(__dirname, 'public')));
 // Redirect HTTP and www to https://thesimplegiveaway.com
 app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
@@ -29,7 +30,6 @@ app.use((req, res, next) => {
 
 // Static and view setup
 app.use('/', overlayRoutes);
-app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
