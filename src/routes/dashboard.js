@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const postLimiter = require('../middleware/ratelimit'); // ✅ Use shared limiter with custom handler
+const postLimiter = require('../middleware/ratelimit');
 const { ensureAuthenticated } = require('../middleware/authMiddleware');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -77,6 +77,7 @@ router.post('/dashboard/command', postLimiter, async (req, res) => {
     const io = getIO();
     const encryptedTwitchId = encrypt(twitchId);
     io.to(encryptedTwitchId).emit('giveawayReset');
+    io.to(encryptedTwitchId).emit('commandUpdated', { command }); // ✅ Live command update
 
     setTimeout(() => {
       stopChatListenerForStreamer(req.user.username);
@@ -129,6 +130,7 @@ router.post('/dashboard/restart', postLimiter, async (req, res) => {
     const io = getIO();
     const encryptedTwitchId = encrypt(twitchId);
     io.to(encryptedTwitchId).emit('giveawayReset');
+    io.to(encryptedTwitchId).emit('commandUpdated', { command: '!' }); // ✅ Also update on restart
 
     setTimeout(() => {
       stopChatListenerForStreamer(username);
