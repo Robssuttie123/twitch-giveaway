@@ -28,6 +28,12 @@
       text-shadow: 0 0 6px rgba(0,0,0,0.6);
     }
 
+    .divider-dot {
+      margin: 0 0.5em;
+      font-weight: normal;
+      opacity: 0.8;
+    }
+
     .divider {
       width: 60%;
       height: 4px;
@@ -138,7 +144,9 @@
 </head>
 <body>
   <div class="overlay-branding">Running on <a href="https://thesimplegiveaway.com" target="_blank">TheSimpleGiveaway.com</a></div>
-  <div class="entry-count" id="entryCount"><span id="commandText"></span> Entries: 0</div>
+  <div class="entry-count" id="entryCount">
+    <span id="commandText"></span><span class="divider-dot">—</span>Entries: 0
+  </div>
   <div class="divider"></div>
   <div class="user-list" id="userList"></div>
   <div id="pageIndicator" class="page-indicator"></div>
@@ -176,7 +184,12 @@
         userList.appendChild(span);
       });
 
-      entryCount.innerHTML = `<span id="commandText">${commandText.textContent}</span> Entries: ${entries.length}`;
+      entryCount.innerHTML = `
+        <span id="commandText">${commandText.textContent}</span>
+        <span class="divider-dot">—</span>
+        Entries: ${entries.length}
+      `;
+
       if (entries.length > entriesPerPage) {
         const totalPages = Math.ceil(entries.length / entriesPerPage);
         pageIndicator.textContent = `Page ${pageIndex + 1} of ${totalPages}`;
@@ -202,7 +215,6 @@
       }, 10000);
     }
 
-    // Initial fetch with command + entries
     fetch(`/api/overlay/${encryptedId}/entries`)
       .then(res => res.json())
       .then(data => {
@@ -230,7 +242,11 @@
       seen.clear();
       entries.length = 0;
       userList.innerHTML = '';
-      entryCount.innerHTML = `<span id="commandText">${commandText.textContent}</span> Entries: 0`;
+      entryCount.innerHTML = `
+        <span id="commandText">${commandText.textContent}</span>
+        <span class="divider-dot">—</span>
+        Entries: 0
+      `;
       winnerBanner.style.display = 'none';
       winnerBanner.textContent = '';
       pageIndicator.style.display = 'none';
@@ -259,7 +275,11 @@
     socket.on('commandUpdated', (data) => {
       if (data.command) {
         commandText.textContent = data.command;
-        entryCount.innerHTML = `<span id="commandText">${commandText.textContent}</span> Entries: ${entries.length}`;
+        entryCount.innerHTML = `
+          <span id="commandText">${data.command}</span>
+          <span class="divider-dot">—</span>
+          Entries: ${entries.length}
+        `;
       }
     });
   </script>
