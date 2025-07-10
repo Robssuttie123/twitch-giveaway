@@ -255,6 +255,13 @@
         origin: { y: 0.6 }
       });
     });
+
+    socket.on('commandUpdated', (data) => {
+      if (data.command) {
+        commandText.textContent = data.command;
+        entryCount.innerHTML = `<span id="commandText">${commandText.textContent}</span> Entries: ${entries.length}`;
+      }
+    });
   </script>
 </body>
 </html>
