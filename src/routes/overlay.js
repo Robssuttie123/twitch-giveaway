@@ -9,7 +9,7 @@ router.get('/overlay/:encryptedId', async (req, res) => {
   try {
     const twitchId = decrypt(req.params.encryptedId);
     res.render('overlay', {
-      twitchId: req.params.encryptedId // <- stay encrypted for Socket.IO room
+      twitchId: req.params.encryptedId // still encrypted for socket room
     });
   } catch (err) {
     console.error("❌ Invalid overlay ID");
@@ -17,31 +17,35 @@ router.get('/overlay/:encryptedId', async (req, res) => {
   }
 });
 
-// API route for fetching current entries using encrypted ID
+// API route for fetching current entries + command using encrypted ID
 router.get('/api/overlay/:encryptedId/entries', async (req, res) => {
   try {
     const twitchId = decrypt(req.params.encryptedId);
 
-    const activeGiveaway = await prisma.giveaway.findFirst({
-      where: {
-        user: {
-          twitchId
-        },
-        isActive: true
-      },
-      include: { entries: true }
+    const user = await prisma.user.findUnique({
+      where: { twitchId },
+      include: {
+        giveaways: {
+          where: { isActive: true },
+          include: { entries: true }
+        }
+      }
     });
 
-    if (!activeGiveaway) {
-      return res.json({ entries: [] });
+    if (!user || !user.giveaways.length) {
+      return res.json({ entries: [], command: '!' });
     }
 
+    const activeGiveaway = user.giveaways[0];
+    const command = user.command || '!';
+
     res.json({
-      entries: activeGiveaway.entries.map(e => e.username)
+      entries: activeGiveaway.entries.map(e => e.username),
+      command
     });
   } catch (err) {
     console.error("❌ Failed to decrypt overlay API request");
-    res.status(400).json({ entries: [] });
+    res.status(400).json({ entries: [], command: '!' });
   }
 });
 
