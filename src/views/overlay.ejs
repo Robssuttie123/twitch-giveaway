@@ -48,6 +48,8 @@
     }
 
     .user-list {
+      align-items: flex-start;
+      align-content: flex-start;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -57,22 +59,23 @@
       transition: opacity 0.4s ease;
       min-height: 8em;
     }
-
-  .user {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.2em 0.6em;
-    border-radius: 6px;
-    color: white;
-    text-shadow: 0 0 5px rgba(0,0,0,0.6);
-    font-weight: 600;
-    font-size: 0.8em;
-    line-height: 1;
-    display: inline-block;
-    white-space: nowrap;
-    animation: popIn 0.4s ease-out forwards;
-    opacity: 0;
-    transform: scale(0.8);
-  }
+    
+    .user {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 0.15em 0.5em;
+      border-radius: 4px;
+      font-size: 0.8em;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+      text-shadow: 0 0 5px rgba(0,0,0,0.6);
+      animation: popIn 0.4s ease-out forwards;
+      opacity: 0;
+      transform: scale(0.8);
+      vertical-align: middle;
+    }
 
     @keyframes popIn {
       to {
