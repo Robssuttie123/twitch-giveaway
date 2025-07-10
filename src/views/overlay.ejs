@@ -230,13 +230,18 @@
         startAutoPaging();
       });
 
-    socket.on('entryUpdate', (data) => {
-      const name = data.entry;
-      if (seen.has(name)) return;
-      seen.add(name);
-      entries.push(name);
-      startAutoPaging();
-    });
+      socket.on('entryUpdate', (data) => {
+        const name = data.entry;
+        if (seen.has(name)) return;
+        seen.add(name);
+        entries.push(name);
+      
+        const totalPages = Math.ceil(entries.length / entriesPerPage);
+        if (currentPage >= totalPages) {
+          currentPage = 0;
+        }
+        renderPage(currentPage);
+      });
 
     socket.on('giveawayReset', () => {
       seen.clear();
