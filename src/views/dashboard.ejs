@@ -159,15 +159,20 @@
   <div class="dashboard-content">
     <div class="entry-list-box">
       <div class="entries-count">Entries: <%= entries.length %></div>
-      <ul class="entry-list">
-        <% if (entries.length === 0) { %>
-          <li class="no-entries">No entries yet</li>
-        <% } else { %>
-          <% entries.forEach(entry => { %>
-            <li><%= entry.username %></li>
-          <% }) %>
-        <% } %>
-      </ul>
+	<ul class="entry-list">
+	  <% if (entries.length === 0) { %>
+	    <li class="no-entries">No entries yet</li>
+	  <% } else { %>
+	    <% entries.forEach(entry => { %>
+	      <li style="display: flex; justify-content: space-between; align-items: center;">
+	        <span><%= entry.username %></span>
+	        <form action="/dashboard/kick/<%= entry.username %>" method="POST" style="margin: 0;">
+	          <button type="submit" style="background-color: #e74c3c; color: white; padding: 0.2em 0.6em; font-size: 0.8em; border-radius: 5px;">Kick</button>
+	        </form>
+	      </li>
+	    <% }) %>
+	  <% } %>
+	</ul>
     </div>
 
     <div class="button-row">
