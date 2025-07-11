@@ -238,18 +238,24 @@
     const socket = io();
     socket.emit('joinRoom', '<%= encryptedTwitchId %>');
 
-    socket.on('entryUpdate', (data) => {
-      const list = document.querySelector('.entry-list');
-      const noEntries = document.querySelector('.no-entries');
-      if (noEntries) noEntries.remove();
-
-      const li = document.createElement('li');
-      li.textContent = data.entry;
-      list.appendChild(li);
-
-      const count = document.querySelector('.entries-count');
-      count.textContent = `Entries: ${list.children.length}`;
-    });
+	socket.on('entryUpdate', (data) => {
+	  const list = document.querySelector('.entry-list');
+	  const noEntries = document.querySelector('.no-entries');
+	  if (noEntries) noEntries.remove();
+	
+	  const li = document.createElement('li');
+	  li.innerHTML = `
+	    ${data.entry}
+	    <form action="/dashboard/kick/${encodeURIComponent(data.entry)}" method="POST" style="display:inline;">
+	      <button type="submit" style="margin-left: 1em;">Kick</button>
+	    </form>
+	  `;
+	
+	  list.appendChild(li);
+	
+	  const count = document.querySelector('.entries-count');
+	  count.textContent = `Entries: ${list.children.length}`;
+	});
 
     socket.on('winnersAnnounced', (data) => {
       data.winners.forEach(winner => {
