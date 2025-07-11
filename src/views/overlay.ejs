@@ -264,6 +264,17 @@
       });
     });
 
+    socket.on('kickUser', (data) => {
+      const users = document.querySelectorAll('.user');
+      users.forEach(el => {
+        if (el.textContent.toLowerCase() === data.username.toLowerCase()) {
+          el.remove();
+        }
+      });
+      seen.delete(data.username.toLowerCase());
+      entryCount.innerHTML = `<span id="commandText">${commandText.textContent}</span> Entries: ${seen.size}`;
+    });
+
     socket.on('commandUpdated', (data) => {
       if (data.command) {
         commandText.textContent = data.command;
