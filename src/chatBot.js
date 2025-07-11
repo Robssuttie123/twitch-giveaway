@@ -104,6 +104,19 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
     });
     if (!activeGiveaway) return;
 
+    // ✅ Check if user was previously kicked from this giveaway
+    const isKicked = await prisma.kickedUser.findFirst({
+      where: {
+        giveawayId: activeGiveaway.id,
+        username
+      }
+    });
+    if (isKicked) {
+      console.log(`🚫 ${username} tried to re-enter but was previously kicked`);
+      return;
+    }
+
+    // ✅ Check for existing entry (redundant but safe)
     const alreadyEntered = await prisma.entry.findFirst({
       where: {
         giveawayId: activeGiveaway.id,
@@ -112,23 +125,14 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
     });
     if (alreadyEntered) return;
 
-    const isKicked = await prisma.kickedUser.findFirst({
-      where: {
-        giveawayId: activeGiveaway.id,
-        username
-      }
-    });
-
-    if (isKicked) return; // ❌ Don't allow re-entry
-
-        try {
-          await prisma.entry.create({
-            data: {
-              username,
-              twitchId,
-              giveawayId: activeGiveaway.id
-            }
-          });
+    try {
+      await prisma.entry.create({
+        data: {
+          username,
+          twitchId,
+          giveawayId: activeGiveaway.id
+        }
+      });
 
       const io = getIO();
       const encryptedTwitchId = encrypt(twitchId);
