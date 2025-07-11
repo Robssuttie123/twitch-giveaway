@@ -112,14 +112,23 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
     });
     if (alreadyEntered) return;
 
-    try {
-      await prisma.entry.create({
-        data: {
-          username,
-          twitchId,
-          giveawayId: activeGiveaway.id
-        }
-      });
+    const isKicked = await prisma.kickedUser.findFirst({
+      where: {
+        giveawayId: activeGiveaway.id,
+        username
+      }
+    });
+
+    if (isKicked) return; // ❌ Don't allow re-entry
+
+        try {
+          await prisma.entry.create({
+            data: {
+              username,
+              twitchId,
+              giveawayId: activeGiveaway.id
+            }
+          });
 
       const io = getIO();
       const encryptedTwitchId = encrypt(twitchId);
