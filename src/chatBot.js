@@ -104,10 +104,6 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
     });
     if (!activeGiveaway) return;
     
-    console.log('🔍 Checking if user is kicked...');
-    console.log('typeof prisma.kickedUser:', typeof prisma.kickedUser);
-    console.log('Available Prisma keys:', Object.keys(prisma));
-    
     // ✅ Check if user was previously kicked from this giveaway
     const isKicked = await prisma.kickedUser.findFirst({
       where: {
@@ -116,7 +112,6 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
       }
     });
     if (isKicked) {
-      console.log(`🚫 ${username} tried to re-enter but was previously kicked`);
       return;
     }
 
