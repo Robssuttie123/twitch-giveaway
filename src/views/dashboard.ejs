@@ -60,14 +60,14 @@
       margin: 0;
     }
 
-     .entry-list li {
-       text-align: left;
-       padding: 0.3em 0;
-       border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-       display: flex;
-       justify-content: space-between;
-       align-items: center;
-     }
+	.entry-list li {
+	  text-align: left;
+	  padding: 0.3em 0;
+	  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	}
 
      .kick-button {
        background-color: #e74c3c;
@@ -255,24 +255,37 @@
     const socket = io();
     socket.emit('joinRoom', '<%= encryptedTwitchId %>');
 
-	  socket.on('entryUpdate', (data) => {
-	    const list = document.querySelector('.entry-list');
-	    const noEntries = document.querySelector('.no-entries');
-	    if (noEntries) noEntries.remove();
+	socket.on('entryUpdate', (data) => {
+	  const list = document.querySelector('.entry-list');
+	  const noEntries = document.querySelector('.no-entries');
+	  if (noEntries) noEntries.remove();
 	
-	    const li = document.createElement('li');
-	    li.innerHTML = `
-	      ${data.entry}
-	      <form action="/dashboard/kick/${encodeURIComponent(data.entry)}" method="POST" style="display:inline; float: right;">
-	        <button type="submit" class="kick-button">Kick</button>
-	      </form>
-	    `;
+	  const li = document.createElement('li');
+	  li.style.display = 'flex';
+	  li.style.justifyContent = 'space-between';
+	  li.style.alignItems = 'center';
 	
-	    list.appendChild(li);
+	  const nameSpan = document.createElement('span');
+	  nameSpan.textContent = data.entry;
 	
-	    const count = document.querySelector('.entries-count');
-	    count.textContent = `Entries: ${list.children.length}`;
-	  });
+	  const form = document.createElement('form');
+	  form.action = `/dashboard/kick/${encodeURIComponent(data.entry)}`;
+	  form.method = 'POST';
+	  form.style.margin = '0';
+	
+	  const btn = document.createElement('button');
+	  btn.type = 'submit';
+	  btn.className = 'kick-button';
+	  btn.textContent = 'Kick';
+	
+	  form.appendChild(btn);
+	  li.appendChild(nameSpan);
+	  li.appendChild(form);
+	  list.appendChild(li);
+	
+	  const count = document.querySelector('.entries-count');
+	  count.textContent = `Entries: ${list.children.length}`;
+	});
 
     socket.on('winnersAnnounced', (data) => {
       data.winners.forEach(winner => {
