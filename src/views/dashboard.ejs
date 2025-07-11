@@ -60,14 +60,28 @@
       margin: 0;
     }
 
-	.entry-list li {
-	  text-align: left;
-	  padding: 0.3em 0;
-	  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-	  display: flex;
-	  justify-content: space-between;
-	  align-items: center;
-	}
+     .entry-list li {
+       text-align: left;
+       padding: 0.3em 0;
+       border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+     }
+
+     .kick-button {
+       background-color: #e74c3c;
+       color: white;
+       border: none;
+       padding: 0.3em 0.6em;
+       border-radius: 4px;
+       font-size: 0.9em;
+       cursor: pointer;
+    }
+
+    .kick-button:hover {
+       background-color: #c0392b;
+     }
 
     .button-row {
       display: flex;
@@ -241,7 +255,7 @@
     const socket = io();
     socket.emit('joinRoom', '<%= encryptedTwitchId %>');
 
-	socket.on('entryUpdate', (data) => {
+	  socket.on('entryUpdate', (data) => {
 	    const list = document.querySelector('.entry-list');
 	    const noEntries = document.querySelector('.no-entries');
 	    if (noEntries) noEntries.remove();
@@ -250,7 +264,7 @@
 	    li.innerHTML = `
 	      ${data.entry}
 	      <form action="/dashboard/kick/${encodeURIComponent(data.entry)}" method="POST" style="display:inline; float: right;">
-	        <button type="submit" style="background-color: #e74c3c; color: white;">Kick</button>
+	        <button type="submit" class="kick-button">Kick</button>
 	      </form>
 	    `;
 	
