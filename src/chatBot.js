@@ -103,7 +103,11 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
       where: { userId: freshUser.id, isActive: true }
     });
     if (!activeGiveaway) return;
-
+    
+    console.log('🔍 Checking if user is kicked...');
+    console.log('typeof prisma.kickedUser:', typeof prisma.kickedUser);
+    console.log('Available Prisma keys:', Object.keys(prisma));
+    
     // ✅ Check if user was previously kicked from this giveaway
     const isKicked = await prisma.kickedUser.findFirst({
       where: {
