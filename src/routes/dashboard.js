@@ -157,16 +157,36 @@ router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) =
 
     if (!activeGiveaway) return res.redirect('/dashboard');
 
-    await prisma.entry.deleteMany({
-      where: {
-        giveawayId: activeGiveaway.id,
-        username: username.toLowerCase()
-      }
-    });
+    const lowerName = username.toLowerCase();
+
+    await prisma.$transaction([
+      // Delete the user from the entries list
+      prisma.entry.deleteMany({
+        where: {
+          giveawayId: activeGiveaway.id,
+          username: lowerName
+        }
+      }),
+
+      // Insert into kickedUser table
+      prisma.kickedUser.upsert({
+        where: {
+          giveawayId_username: {
+            giveawayId: activeGiveaway.id,
+            username: lowerName
+          }
+        },
+        update: {}, // No update needed if they already exist
+        create: {
+          giveawayId: activeGiveaway.id,
+          username: lowerName
+        }
+      })
+    ]);
 
     const io = getIO();
     const encryptedTwitchId = encrypt(twitchId);
-    io.to(encryptedTwitchId).emit('kickUser', { username });
+    io.to(encryptedTwitchId).emit('kickUser', { username: lowerName });
 
     res.redirect('/dashboard');
   } catch (err) {
@@ -174,6 +194,7 @@ router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) =
     res.redirect('/dashboard');
   }
 });
+
 
 // POST /dashboard/pick-winners
 router.post('/dashboard/pick-winners', postLimiter, async (req, res) => {
