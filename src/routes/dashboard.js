@@ -145,6 +145,36 @@ router.post('/dashboard/restart', postLimiter, async (req, res) => {
   }
 });
 
+// POST /dashboard/kick/:username
+router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) => {
+  const { username } = req.params;
+  const { id: userId, twitchId } = req.user;
+
+  try {
+    const activeGiveaway = await prisma.giveaway.findFirst({
+      where: { userId, isActive: true }
+    });
+
+    if (!activeGiveaway) return res.redirect('/dashboard');
+
+    await prisma.entry.deleteMany({
+      where: {
+        giveawayId: activeGiveaway.id,
+        username: username.toLowerCase()
+      }
+    });
+
+    const io = getIO();
+    const encryptedTwitchId = encrypt(twitchId);
+    io.to(encryptedTwitchId).emit('kickUser', { username });
+
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.error("❌ Failed to kick user:", err);
+    res.redirect('/dashboard');
+  }
+});
+
 // POST /dashboard/pick-winners
 router.post('/dashboard/pick-winners', postLimiter, async (req, res) => {
   const { twitchId, id: userId } = req.user;
