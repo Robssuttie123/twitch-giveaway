@@ -144,10 +144,15 @@
   <script>
     const socket = io(window.location.origin);
     const encryptedId = '<%= twitchId %>';
-    socket.emit('joinRoom', encryptedId);
+
+    function joinOverlayRoom() {
+      socket.emit('joinRoom', encryptedId);
+      refetchOverlayData();
+    }
 
     socket.on('connect', () => {
-      refetchOverlayData();
+      console.log("🔌 Reconnected, rejoining room...");
+      joinOverlayRoom();
     });
 
     const userList = document.getElementById('userList');
@@ -231,8 +236,8 @@
         });
     }
 
-    // Initial load
-    refetchOverlayData();
+    // ✅ Initial load
+    joinOverlayRoom();
 
     socket.on('entryUpdate', (data) => {
       const name = data.entry;
@@ -251,7 +256,6 @@
       refetchOverlayData();
     });
 
-    // ✅ NEW — Handle re-sync request from backend
     socket.on('forceResync', () => {
       console.log('🔁 Force re-sync received from server');
       refetchOverlayData();
