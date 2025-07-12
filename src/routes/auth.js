@@ -66,16 +66,19 @@ router.post('/logout', async (req, res, next) => {
     if (req.user) {
       const { id: userId, twitchId, username } = req.user;
 
-      // End chat listener
+      // Stop chat listener
       stopChatListenerForStreamer(username);
 
-      // Find and delete active giveaway + entries
+      // Find and delete active giveaway + entries + kicked users in the right order
       const activeGiveaway = await prisma.giveaway.findFirst({
         where: { userId, isActive: true }
       });
 
       if (activeGiveaway) {
         await prisma.$transaction([
+          prisma.kickedUser.deleteMany({
+            where: { giveawayId: activeGiveaway.id }
+          }),
           prisma.entry.deleteMany({
             where: { giveawayId: activeGiveaway.id }
           }),
@@ -93,7 +96,7 @@ router.post('/logout', async (req, res, next) => {
       }
     }
 
-    // Proceed with session cleanup
+    // Cleanup session
     req.logout(err => {
       if (err) return next(err);
       req.session.destroy(() => {
@@ -106,6 +109,5 @@ router.post('/logout', async (req, res, next) => {
     res.redirect('/');
   }
 });
-
 
 module.exports = router;
