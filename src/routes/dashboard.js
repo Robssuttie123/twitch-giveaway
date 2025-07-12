@@ -77,6 +77,7 @@ router.post('/dashboard/command', postLimiter, async (req, res) => {
     const io = getIO();
     const encryptedTwitchId = encrypt(twitchId);
     io.to(encryptedTwitchId).emit('giveawayReset');
+    io.to(encryptedTwitchId).emit('forceResync');
     io.to(encryptedTwitchId).emit('commandUpdated', { command }); // ✅ Live command update
 
     setTimeout(() => {
