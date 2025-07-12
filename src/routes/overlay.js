@@ -17,35 +17,34 @@ router.get('/overlay/:encryptedId', async (req, res) => {
   }
 });
 
-// API route for fetching current entries + command using encrypted ID
+// ✅ Enhanced API: also return command
 router.get('/api/overlay/:encryptedId/entries', async (req, res) => {
   try {
     const twitchId = decrypt(req.params.encryptedId);
 
-    const user = await prisma.user.findUnique({
-      where: { twitchId },
+    const activeGiveaway = await prisma.giveaway.findFirst({
+      where: {
+        user: {
+          twitchId
+        },
+        isActive: true
+      },
       include: {
-        giveaways: {
-          where: { isActive: true },
-          include: { entries: true }
-        }
+        entries: true
       }
     });
 
-    if (!user || !user.giveaways.length) {
-      return res.json({ entries: [], command: '!' });
+    if (!activeGiveaway) {
+      return res.json({ entries: [], command: null });
     }
-
-    const activeGiveaway = user.giveaways[0];
-    const command = user.command || '!';
 
     res.json({
       entries: activeGiveaway.entries.map(e => e.username),
-      command
+      command: activeGiveaway.command
     });
   } catch (err) {
-    console.error("❌ Failed to decrypt overlay API request");
-    res.status(400).json({ entries: [], command: '!' });
+    console.error("❌ Failed to decrypt overlay API request", err);
+    res.status(400).json({ entries: [], command: null });
   }
 });
 
