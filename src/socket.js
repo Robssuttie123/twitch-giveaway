@@ -7,6 +7,8 @@ function initIO(server) {
   const { PrismaClient } = require('@prisma/client');
   const prisma = new PrismaClient();
 
+  const { decrypt } = require('./utils/crypto'); // Make sure you have this
+
   io.on('connection', (socket) => {
     console.log('🟢 New socket connected');
 
@@ -15,13 +17,24 @@ function initIO(server) {
       console.log('🟣 Socket joined room', roomId);
     });
 
-    socket.on('requestCurrentEntries', async (twitchId) => {
+    socket.on('requestCurrentEntries', async (encryptedTwitchId) => {
       try {
-		const latestGiveaway = await prisma.giveaway.findFirst({
-		  where: { userId: req.user.id },
-		  orderBy: { createdAt: 'desc' },
-		  include: { entries: true }
-		});
+        const twitchId = decrypt(encryptedTwitchId);
+
+        const user = await prisma.user.findUnique({
+          where: { twitchId }
+        });
+
+        if (!user) {
+          console.warn('⚠️ User not found for Twitch ID:', twitchId);
+          return socket.emit('currentEntries', []);
+        }
+
+        const latestGiveaway = await prisma.giveaway.findFirst({
+          where: { userId: user.id },
+          orderBy: { createdAt: 'desc' },
+          include: { entries: true }
+        });
 
         if (latestGiveaway && latestGiveaway.entries) {
           const usernames = latestGiveaway.entries.map(e => e.username);
@@ -30,7 +43,7 @@ function initIO(server) {
           socket.emit('currentEntries', []);
         }
       } catch (err) {
-        console.error('Error fetching current entries:', err);
+        console.error('❌ Error fetching current entries:', err);
         socket.emit('currentEntries', []);
       }
     });
