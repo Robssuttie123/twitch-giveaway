@@ -146,6 +146,10 @@
   const encryptedId = '<%= twitchId %>';
   socket.emit('joinRoom', encryptedId);
 
+socket.on('connect', () => {
+  refetchOverlayData();
+});
+
   const userList = document.getElementById('userList');
   const entryCount = document.getElementById('entryCount');
   const commandText = document.getElementById('commandText');
