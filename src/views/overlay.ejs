@@ -142,149 +142,154 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io(window.location.origin);
-    const encryptedId = '<%= twitchId %>';
-    socket.emit('joinRoom', encryptedId);
+  const socket = io(window.location.origin);
+  const encryptedId = '<%= twitchId %>';
+  socket.emit('joinRoom', encryptedId);
 
-    const userList = document.getElementById('userList');
-    const entryCount = document.getElementById('entryCount');
-    const commandText = document.getElementById('commandText');
-    const pageIndicator = document.getElementById('pageIndicator');
-    const winnerBanner = document.getElementById('winnerBanner');
+  const userList = document.getElementById('userList');
+  const entryCount = document.getElementById('entryCount');
+  const commandText = document.getElementById('commandText');
+  const pageIndicator = document.getElementById('pageIndicator');
+  const winnerBanner = document.getElementById('winnerBanner');
 
-    const seen = new Set();
-    const entries = [];
-    const entriesPerPage = 40;
-    let currentPage = 0;
-    let pageInterval;
+  const seen = new Set();
+  const entries = [];
+  const entriesPerPage = 40;
+  let currentPage = 0;
+  let pageInterval;
 
-    function renderPage(pageIndex) {
-      userList.innerHTML = '';
-      const start = pageIndex * entriesPerPage;
-      const end = start + entriesPerPage;
-      const pageEntries = entries.slice(start, end);
+  function renderPage(pageIndex) {
+    userList.innerHTML = '';
+    const start = pageIndex * entriesPerPage;
+    const end = start + entriesPerPage;
+    const pageEntries = entries.slice(start, end);
 
-      pageEntries.forEach(name => {
-        const span = document.createElement('span');
-        span.className = 'user';
-        span.textContent = name;
-        userList.appendChild(span);
-      });
+    pageEntries.forEach(name => {
+      const span = document.createElement('span');
+      span.className = 'user';
+      span.textContent = name;
+      userList.appendChild(span);
+    });
 
-      entryCount.innerHTML = `
-        <span id="commandText">${commandText.textContent}</span>
-        <span class="divider-dot">—</span>
-        Entries: ${entries.length}
-      `;
+    entryCount.innerHTML = `
+      <span id="commandText">${commandText.textContent}</span>
+      <span class="divider-dot">—</span>
+      Entries: ${entries.length}
+    `;
 
-      if (entries.length > entriesPerPage) {
-        const totalPages = Math.ceil(entries.length / entriesPerPage);
-        pageIndicator.textContent = `Page ${pageIndex + 1} of ${totalPages}`;
-        pageIndicator.style.display = 'block';
-      } else {
-        pageIndicator.style.display = 'none';
-      }
+    if (entries.length > entriesPerPage) {
+      const totalPages = Math.ceil(entries.length / entriesPerPage);
+      pageIndicator.textContent = `Page ${pageIndex + 1} of ${totalPages}`;
+      pageIndicator.style.display = 'block';
+    } else {
+      pageIndicator.style.display = 'none';
     }
+  }
 
-    function startAutoPaging() {
-      if (pageInterval) clearInterval(pageInterval);
-      if (entries.length <= entriesPerPage) {
-        renderPage(0);
-        return;
-      }
-
+  function startAutoPaging() {
+    if (pageInterval) clearInterval(pageInterval);
+    if (entries.length <= entriesPerPage) {
       renderPage(0);
-      currentPage = 1;
-
-      pageInterval = setInterval(() => {
-        renderPage(currentPage);
-        currentPage = (currentPage + 1) % Math.ceil(entries.length / entriesPerPage);
-      }, 10000);
+      return;
     }
 
+    renderPage(0);
+    currentPage = 1;
+
+    pageInterval = setInterval(() => {
+      renderPage(currentPage);
+      currentPage = (currentPage + 1) % Math.ceil(entries.length / entriesPerPage);
+    }, 10000);
+  }
+
+  function refetchOverlayData() {
     fetch(`/api/overlay/${encryptedId}/entries`)
       .then(res => res.json())
       .then(data => {
+        seen.clear();
+        entries.length = 0;
+        userList.innerHTML = '';
+
         if (data.command) {
           commandText.textContent = data.command;
         }
+
         data.entries.forEach(name => {
           if (!seen.has(name)) {
             seen.add(name);
             entries.push(name);
           }
         });
+
+        winnerBanner.style.display = 'none';
+        winnerBanner.textContent = '';
         startAutoPaging();
       });
+  }
 
-      socket.on('entryUpdate', (data) => {
-        const name = data.entry;
-        if (seen.has(name)) return;
-        seen.add(name);
-        entries.push(name);
-      
-        const totalPages = Math.ceil(entries.length / entriesPerPage);
-        if (currentPage >= totalPages) {
-          currentPage = 0;
-        }
-        renderPage(currentPage);
-      });
+  // Initial load
+  refetchOverlayData();
 
-    socket.on('giveawayReset', () => {
-      seen.clear();
-      entries.length = 0;
-      userList.innerHTML = '';
-      entryCount.innerHTML = `
-        <span id="commandText">${commandText.textContent}</span>
-        <span class="divider-dot">—</span>
-        Entries: 0
-      `;
-      winnerBanner.style.display = 'none';
-      winnerBanner.textContent = '';
-      pageIndicator.style.display = 'none';
-      if (pageInterval) clearInterval(pageInterval);
+  socket.on('entryUpdate', (data) => {
+    const name = data.entry;
+    if (seen.has(name)) return;
+    seen.add(name);
+    entries.push(name);
+
+    const totalPages = Math.ceil(entries.length / entriesPerPage);
+    if (currentPage >= totalPages) {
+      currentPage = 0;
+    }
+    renderPage(currentPage);
+  });
+
+  socket.on('giveawayReset', () => {
+    refetchOverlayData();
+  });
+
+  socket.on('winnersAnnounced', (data) => {
+    if (pageInterval) clearInterval(pageInterval);
+    userList.innerHTML = '';
+    entryCount.textContent = '';
+    pageIndicator.style.display = 'none';
+
+    winnerBanner.textContent = data.winners.length === 1
+      ? `🎉 Winner: ${data.winners[0]} 🎉`
+      : `🎉 Winners: ${data.winners.join(', ')} 🎉`;
+
+    winnerBanner.style.display = 'block';
+
+    confetti({
+      particleCount: 180,
+      spread: 100,
+      origin: { y: 0.6 }
     });
+  });
 
-    socket.on('winnersAnnounced', (data) => {
-      if (pageInterval) clearInterval(pageInterval);
-      userList.innerHTML = '';
-      entryCount.textContent = '';
-      pageIndicator.style.display = 'none';
-
-      winnerBanner.textContent = data.winners.length === 1
-        ? `🎉 Winner: ${data.winners[0]} 🎉`
-        : `🎉 Winners: ${data.winners.join(', ')} 🎉`;
-
-      winnerBanner.style.display = 'block';
-
-      confetti({
-        particleCount: 180,
-        spread: 100,
-        origin: { y: 0.6 }
-      });
-    });
-
-    socket.on('kickUser', (data) => {
-      const users = document.querySelectorAll('.user');
-      users.forEach(el => {
-        if (el.textContent.toLowerCase() === data.username.toLowerCase()) {
-          el.remove();
-        }
-      });
-      seen.delete(data.username.toLowerCase());
-      entryCount.innerHTML = `<span id="commandText">${commandText.textContent}</span> Entries: ${seen.size}`;
-    });
-
-    socket.on('commandUpdated', (data) => {
-      if (data.command) {
-        commandText.textContent = data.command;
-        entryCount.innerHTML = `
-          <span id="commandText">${data.command}</span>
-          <span class="divider-dot">—</span>
-          Entries: ${entries.length}
-        `;
+  socket.on('kickUser', (data) => {
+    const users = document.querySelectorAll('.user');
+    users.forEach(el => {
+      if (el.textContent.toLowerCase() === data.username.toLowerCase()) {
+        el.remove();
       }
     });
+    seen.delete(data.username.toLowerCase());
+    const index = entries.findIndex(e => e.toLowerCase() === data.username.toLowerCase());
+    if (index !== -1) entries.splice(index, 1);
+
+    renderPage(currentPage);
+  });
+
+  socket.on('commandUpdated', (data) => {
+    if (data.command) {
+      commandText.textContent = data.command;
+      entryCount.innerHTML = `
+        <span id="commandText">${data.command}</span>
+        <span class="divider-dot">—</span>
+        Entries: ${entries.length}
+      `;
+    }
+  });
   </script>
 </body>
 </html>
