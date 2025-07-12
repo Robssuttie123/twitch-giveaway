@@ -3,95 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <title>Giveaway Dashboard</title>
-
+  
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-
+  
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg-gradient-light: linear-gradient(135deg, #4facfe, #8e44ad);
-      --bg-gradient-dark: linear-gradient(135deg, #2c3e50, #000000);
-      --text-color-light: white;
-      --text-color-dark: #f0f0f0;
-      --input-bg-dark: #333;
-      --input-color-dark: #f0f0f0;
-    }
-
     body {
       margin: 0;
       padding: 0;
       min-height: 100vh;
+      background: linear-gradient(135deg, #4facfe, #8e44ad);
       font-family: 'Montserrat', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      color: var(--text-color-light);
+      color: white;
       text-align: center;
-      background: var(--bg-gradient-light);
-      transition: background 0.5s, color 0.3s;
-    }
-
-    body.dark {
-      background: var(--bg-gradient-dark);
-      color: var(--text-color-dark);
     }
 
     h1 {
       margin-top: 2em;
       font-size: 2.5em;
       text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .dark-mode-toggle {
-      position: absolute;
-      top: 1em;
-      right: 1em;
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-    }
-
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 24px;
-    }
-
-    .toggle-switch input {
-      display: none;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
-      background-color: #ccc;
-      transition: 0.4s;
-      border-radius: 24px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 4px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: #2ecc71;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
     }
 
     .dashboard-content {
@@ -119,40 +54,36 @@
       overflow-y: auto;
     }
 
-    body.dark .entry-list-box {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
     .entry-list {
       list-style: none;
       padding: 0;
       margin: 0;
     }
 
-    .entry-list li {
-      text-align: left;
-      padding: 0.3em 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+	.entry-list li {
+	  text-align: left;
+	  padding: 0.3em 0;
+	  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	}
 
-    .kick-button {
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 0.4em 0.8em;
-      font-size: 0.9em;
-      font-family: 'Montserrat', sans-serif;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .kick-button:hover {
-      background-color: #c0392b;
-    }
+	.kick-button {
+	  background-color: #e74c3c;
+	  color: white;
+	  border: none;
+	  border-radius: 6px;
+	  padding: 0.4em 0.8em;
+	  font-size: 0.9em;
+	  font-family: 'Montserrat', sans-serif;
+	  cursor: pointer;
+	  transition: background-color 0.2s;
+	}
+	
+	.kick-button:hover {
+	  background-color: #c0392b;
+	}
 
     .button-row {
       display: flex;
@@ -166,15 +97,6 @@
       font-size: 1em;
       border-radius: 6px;
       border: none;
-      background-color: white;
-      color: black;
-    }
-
-    body.dark button,
-    body.dark input,
-    body.dark select {
-      background-color: var(--input-bg-dark);
-      color: var(--input-color-dark);
     }
 
     button {
@@ -251,14 +173,6 @@
   </style>
 </head>
 <body>
-  <!-- Dark Mode Toggle -->
-  <div class="dark-mode-toggle">
-    <label class="toggle-switch">
-      <input type="checkbox" id="darkModeSwitch">
-      <span class="slider"></span>
-    </label>
-  </div>
-
   <h1>GIVEAWAY DASHBOARD</h1>
 
   <div class="dashboard-content">
@@ -419,23 +333,6 @@
       }, 2000);
     }
 
-    // Load dark mode preference
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    if (isDark) {
-      document.body.classList.add('dark');
-      document.getElementById('darkModeSwitch').checked = true;
-    }
-
-    // Handle toggle
-    document.getElementById('darkModeSwitch').addEventListener('change', function () {
-      if (this.checked) {
-        document.body.classList.add('dark');
-        localStorage.setItem('darkMode', 'true');
-      } else {
-        document.body.classList.remove('dark');
-        localStorage.setItem('darkMode', 'false');
-      }
-    });
   </script>
 </body>
 </html>
