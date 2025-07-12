@@ -186,11 +186,12 @@
 	      <li style="display: flex; justify-content: space-between; align-items: center;">
 	        <span><%= entry.username %></span>
 	        <form action="/dashboard/kick/<%= entry.username %>" method="POST" style="margin: 0;">
-	          <button type="submit" style="background-color: #e74c3c; color: white; padding: 0.2em 0.6em; font-size: 0.8em; border-radius: 5px;">Kick</button>
+	          <button type="submit" class="kick-button">Kick</button>
 	        </form>
 	      </li>
 	    <% }) %>
 	  <% } %>
+	</ul>
 	</ul>
     </div>
 
