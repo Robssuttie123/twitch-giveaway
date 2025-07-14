@@ -20,7 +20,7 @@
       justify-content: flex-start;
       padding-top: 2em;
       box-sizing: border-box;
-      position: relative; /* 🔧 Needed for absolute positioning of winnerBanner */
+      position: relative; 
     }
 
     .entry-count {
@@ -91,23 +91,23 @@
       }
     }
 
-    #winnerBanner {
-      display: none;
-      position: absolute;
-      top: 18%; /* ✅ Adjusted winner banner position */
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 0.5em 1em;
-      max-width: 80%;
-      word-wrap: break-word;
-      text-align: center;
-      color: gold;
-      font-size: 1.6em;
-      font-weight: bold;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-    }
+#winnerBanner {
+  display: none;
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5em 1em;
+  max-width: 80%;
+  word-wrap: break-word;
+  text-align: center;
+  color: gold;
+  font-size: 1.6em;
+  font-weight: bold;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
 
     .page-indicator {
       font-size: 0.6em;
