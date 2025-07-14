@@ -20,7 +20,7 @@
       justify-content: flex-start;
       padding-top: 2em;
       box-sizing: border-box;
-      position: relative; 
+      position: relative;
     }
 
     .entry-count {
@@ -91,6 +91,25 @@
       }
     }
 
+    #winnerBanner {
+      display: none;
+      position: absolute;
+      top: 6%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.5em 1em;
+      max-width: 80%;
+      word-wrap: break-word;
+      text-align: center;
+      color: gold;
+      font-size: 1.6em;
+      font-weight: bold;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      pointer-events: none;
+    }
+
     .page-indicator {
       font-size: 0.6em;
       color: white;
@@ -114,28 +133,10 @@
     .overlay-branding a:hover {
       text-decoration: underline;
     }
-
-    #winnerBanner {
-      display: none;
-      position: absolute;
-      top: 12%;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 0.5em 1em;
-      max-width: 80%;
-      word-wrap: break-word;
-      text-align: center;
-      color: gold;
-      font-size: 1.6em;
-      font-weight: bold;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      pointer-events: none;
-    }
   </style>
 </head>
 <body>
+  <div id="winnerBanner"></div> <!-- Moved here to be outside flex flow -->
   <div class="overlay-branding">Running on <a href="https://thesimplegiveaway.com" target="_blank">TheSimpleGiveaway.com</a></div>
   <div class="entry-count" id="entryCount">
     <span id="commandText"></span><span class="divider-dot">—</span>Entries: 0
@@ -143,9 +144,6 @@
   <div class="divider"></div>
   <div class="user-list" id="userList"></div>
   <div id="pageIndicator" class="page-indicator"></div>
-
-  <!-- Winner banner moved to bottom -->
-  <div id="winnerBanner"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
