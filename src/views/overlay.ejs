@@ -202,20 +202,22 @@
 
     function startAutoPaging() {
       if (pageInterval) clearInterval(pageInterval);
-      if (entries.length <= entriesPerPage) {
+    
+      const totalPages = Math.ceil(entries.length / entriesPerPage);
+    
+      if (entries.length <= entriesPerPage || totalPages <= 1) {
         renderPage(0);
         return;
       }
-
-      renderPage(0);
-      currentPage = 1;
-
+    
+      currentPage = 0;
+      renderPage(currentPage);
+    
       pageInterval = setInterval(() => {
+        currentPage = (currentPage + 1) % totalPages;
         renderPage(currentPage);
-        currentPage = (currentPage + 1) % Math.ceil(entries.length / entriesPerPage);
       }, 10000);
     }
-
     function refetchOverlayData() {
       fetch(`/api/overlay/${encryptedId}/entries`)
         .then(res => res.json())
