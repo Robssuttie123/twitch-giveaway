@@ -4,23 +4,31 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { decrypt } = require('../utils/crypto');
 
-// Route to render the overlay using encrypted ID
+// Overlay page render
 router.get('/overlay/:encryptedId', async (req, res) => {
   try {
-    const twitchId = decrypt(req.params.encryptedId);
+    const encryptedId = req.params.encryptedId;
+    if (!encryptedId || encryptedId.length < 8) throw new Error('Too short');
+
+    const twitchId = decrypt(encryptedId);
     res.render('overlay', {
-      twitchId: req.params.encryptedId // still encrypted for socket room
+      twitchId: encryptedId // still encrypted for socket room
     });
   } catch (err) {
-    console.error("❌ Invalid overlay ID");
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn("❌ Invalid overlay ID in page route:", req.params.encryptedId, '->', err.message);
+    }
     res.status(400).send("Invalid overlay URL.");
   }
 });
 
-// ✅ Enhanced API: also return command
+// Overlay entries API
 router.get('/api/overlay/:encryptedId/entries', async (req, res) => {
   try {
-    const twitchId = decrypt(req.params.encryptedId);
+    const encryptedId = req.params.encryptedId;
+    if (!encryptedId || encryptedId.length < 8) throw new Error('Too short');
+
+    const twitchId = decrypt(encryptedId);
 
     const activeGiveaway = await prisma.giveaway.findFirst({
       where: {
@@ -43,9 +51,9 @@ router.get('/api/overlay/:encryptedId/entries', async (req, res) => {
       command: activeGiveaway.command
     });
   } catch (err) {
-    console.error("❌ Failed to decrypt overlay API request", err);
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn("❌ Failed to decrypt overlay API request:", req.params.encryptedId, '->', err.message);
+    }
     res.status(400).json({ entries: [], command: null });
   }
 });
-
-module.exports = router;
