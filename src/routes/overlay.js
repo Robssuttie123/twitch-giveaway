@@ -12,7 +12,7 @@ router.get('/overlay/:encryptedId', async (req, res) => {
 
     const twitchId = decrypt(encryptedId);
     res.render('overlay', {
-      twitchId: encryptedId // still encrypted for socket room
+      twitchId: encryptedId
     });
   } catch (err) {
     if (process.env.NODE_ENV !== 'production') {
