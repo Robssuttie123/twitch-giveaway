@@ -57,3 +57,5 @@ router.get('/api/overlay/:encryptedId/entries', async (req, res) => {
     res.status(400).json({ entries: [], command: null });
   }
 });
+
+module.exports = router;
