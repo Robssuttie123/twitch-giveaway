@@ -6,18 +6,19 @@ const { decrypt } = require('../utils/crypto');
 
 // Overlay page render
 router.get('/overlay/:encryptedId', async (req, res) => {
+  const { encryptedId } = req.params;
   try {
-    const encryptedId = req.params.encryptedId;
-    if (!encryptedId || encryptedId.length < 8) throw new Error('Too short');
-
     const twitchId = decrypt(encryptedId);
+
+    if (!twitchId || typeof twitchId !== 'string') {
+      throw new Error('Decryption returned invalid ID');
+    }
+
     res.render('overlay', {
-      twitchId: encryptedId
+      twitchId: encryptedId // still encrypted for socket room
     });
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn("❌ Invalid overlay ID in page route:", req.params.encryptedId, '->', err.message);
-    }
+    console.error(`❌ Failed to decrypt overlay ID (${encryptedId}):`, err.message);
     res.status(400).send("Invalid overlay URL.");
   }
 });
