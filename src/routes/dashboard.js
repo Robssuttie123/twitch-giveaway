@@ -78,7 +78,7 @@ router.post('/dashboard/command', postLimiter, async (req, res) => {
     const encryptedTwitchId = encrypt(twitchId);
     io.to(encryptedTwitchId).emit('giveawayReset');
     io.to(encryptedTwitchId).emit('forceResync');
-    io.to(encryptedTwitchId).emit('commandUpdated', { command }); // ✅ Live command update
+    io.to(encryptedTwitchId).emit('commandUpdated', { command });
 
     setTimeout(() => {
       stopChatListenerForStreamer(req.user.username);
@@ -113,7 +113,7 @@ router.post('/dashboard/restart', postLimiter, async (req, res) => {
         }),
         prisma.kickedUser.deleteMany({
           where: { giveawayId: current.id }
-        }) // ✅ Clean up kicked users
+        }) 
       ]);
     }
 
