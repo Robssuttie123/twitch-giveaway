@@ -5,8 +5,6 @@ const passport = require('passport');
 const path = require('path');
 require('dotenv').config();
 
-const io = require('./server');
-
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
 const overlayRoutes = require('./routes/overlay');
@@ -15,6 +13,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(express.static(path.join(__dirname, '../public')));
+
 // Redirect HTTP and www to https://thesimplegiveaway.com
 app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
@@ -40,7 +39,7 @@ app.use(session({
     conObject: {
       connectionString: process.env.DATABASE_URL,
       ssl: {
-        rejectUnauthorized: false 
+        rejectUnauthorized: false
       }
     },
     tableName: 'user_sessions',
@@ -83,5 +82,8 @@ app.use((err, req, res, next) => {
   console.error("❌ Unhandled error:", err);
   res.status(500).send('<h1>Internal Server Error</h1><pre>' + err.stack + '</pre>');
 });
+
+// ✅ Start server with side effects (HTTP + Socket.IO)
+require('./server');
 
 module.exports = app;
