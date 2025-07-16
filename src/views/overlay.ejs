@@ -97,16 +97,29 @@
       top: 35%;
       left: 50%;
       transform: translateX(-50%);
-      padding: 0.5em 1em;
-      max-width: 80%;
-      word-wrap: break-word;
       text-align: center;
-      color: gold;
-      font-size: 1.6em;
-      font-weight: bold;
       z-index: 1000;
-      border-radius: 8px;
       pointer-events: none;
+    }
+
+    #winnerTitle {
+      color: white;
+      font-size: 1.8em;
+      font-weight: bold;
+      margin-bottom: 0.4em;
+    }
+
+    #winnerList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #winnerList li {
+      color: gold;
+      font-size: 1.4em;
+      font-weight: bold;
+      margin: 0.2em 0;
     }
 
     .page-indicator {
@@ -135,7 +148,11 @@
   </style>
 </head>
 <body>
-  <div id="winnerBanner"></div>
+  <div id="winnerBanner">
+    <div id="winnerTitle"></div>
+    <ul id="winnerList"></ul>
+  </div>
+
   <div class="overlay-branding">Running on <a href="https://thesimplegiveaway.com" target="_blank">TheSimpleGiveaway.com</a></div>
   <div class="entry-count" id="entryCount">
     <span id="commandText"></span><span class="divider-dot">—</span>Entries: 0
@@ -155,6 +172,8 @@
     const commandText = document.getElementById('commandText');
     const pageIndicator = document.getElementById('pageIndicator');
     const winnerBanner = document.getElementById('winnerBanner');
+    const winnerTitle = document.getElementById('winnerTitle');
+    const winnerList = document.getElementById('winnerList');
 
     const seen = new Set();
     const entries = [];
@@ -227,7 +246,8 @@
           });
 
           winnerBanner.style.display = 'none';
-          winnerBanner.textContent = '';
+          winnerTitle.textContent = '';
+          winnerList.innerHTML = '';
           startAutoPaging();
         });
     }
@@ -265,9 +285,14 @@
       entryCount.textContent = '';
       pageIndicator.style.display = 'none';
 
-      winnerBanner.textContent = data.winners.length === 1
-        ? `🎉 Winner: ${data.winners[0]} 🎉`
-        : `🎉 Winners: ${data.winners.join(', ')} 🎉`;
+      winnerTitle.textContent = data.winners.length === 1 ? '🎉 Winner 🎉' : '🎉 Winners 🎉';
+      winnerList.innerHTML = '';
+
+      data.winners.forEach(winner => {
+        const li = document.createElement('li');
+        li.textContent = winner;
+        winnerList.appendChild(li);
+      });
 
       winnerBanner.style.display = 'block';
 
@@ -302,7 +327,6 @@
       }
     });
 
-    // Start it up
     joinOverlayRoom();
   </script>
 </body>
