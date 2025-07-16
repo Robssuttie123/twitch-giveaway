@@ -135,7 +135,7 @@
   </style>
 </head>
 <body>
-  <div id="winnerBanner"></div> <!-- Moved here to be outside flex flow -->
+  <div id="winnerBanner"></div>
   <div class="overlay-branding">Running on <a href="https://thesimplegiveaway.com" target="_blank">TheSimpleGiveaway.com</a></div>
   <div class="entry-count" id="entryCount">
     <span id="commandText"></span><span class="divider-dot">—</span>Entries: 0
@@ -149,16 +149,6 @@
   <script>
     const socket = io(window.location.origin);
     const encryptedId = '<%= twitchId %>';
-
-    function joinOverlayRoom() {
-      socket.emit('joinRoom', encryptedId);
-      refetchOverlayData();
-    }
-
-    socket.on('connect', () => {
-      console.log("🔌 Reconnected, rejoining room...");
-      joinOverlayRoom();
-    });
 
     const userList = document.getElementById('userList');
     const entryCount = document.getElementById('entryCount');
@@ -202,29 +192,28 @@
 
     function startAutoPaging() {
       if (pageInterval) clearInterval(pageInterval);
-    
       const totalPages = Math.ceil(entries.length / entriesPerPage);
-    
+
       if (entries.length <= entriesPerPage || totalPages <= 1) {
         renderPage(0);
         return;
       }
-    
+
       currentPage = 0;
       renderPage(currentPage);
-    
+
       pageInterval = setInterval(() => {
         currentPage = (currentPage + 1) % totalPages;
         renderPage(currentPage);
       }, 10000);
     }
+
     function refetchOverlayData() {
       fetch(`/api/overlay/${encryptedId}/entries`)
         .then(res => res.json())
         .then(data => {
           seen.clear();
           entries.length = 0;
-          userList.innerHTML = '';
 
           if (data.command) {
             commandText.textContent = data.command;
@@ -243,20 +232,22 @@
         });
     }
 
-    // ✅ Initial load
-    joinOverlayRoom();
+    function joinOverlayRoom() {
+      socket.emit('joinRoom', encryptedId);
+      refetchOverlayData();
+    }
+
+    socket.on('connect', () => {
+      console.log("🔌 Reconnected, rejoining room...");
+      joinOverlayRoom();
+    });
 
     socket.on('entryUpdate', (data) => {
       const name = data.entry;
       if (seen.has(name)) return;
       seen.add(name);
       entries.push(name);
-
-      const totalPages = Math.ceil(entries.length / entriesPerPage);
-      if (currentPage >= totalPages) {
-        currentPage = 0;
-      }
-      renderPage(currentPage);
+      // No re-render here — paging continues normally
     });
 
     socket.on('giveawayReset', () => {
@@ -310,6 +301,9 @@
         `;
       }
     });
+
+    // Start it up
+    joinOverlayRoom();
   </script>
 </body>
 </html>
