@@ -247,7 +247,7 @@
       if (seen.has(name)) return;
       seen.add(name);
       entries.push(name);
-      // No re-render here — paging continues normally
+      renderPage(currentPage); 
     });
 
     socket.on('giveawayReset', () => {
