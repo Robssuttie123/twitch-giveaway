@@ -267,7 +267,6 @@
       if (seen.has(name)) return;
       seen.add(name);
       entries.push(name);
-      renderPage(currentPage); 
     });
 
     socket.on('giveawayReset', () => {
