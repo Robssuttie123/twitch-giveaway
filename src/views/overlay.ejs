@@ -117,7 +117,6 @@
 
     #winnerList li {
       color: gold;
-      font-size: 1.4em;
       font-weight: bold;
       margin: 0.2em 0;
     }
@@ -267,6 +266,7 @@
       if (seen.has(name)) return;
       seen.add(name);
       entries.push(name);
+      renderPage(currentPage);
     });
 
     socket.on('giveawayReset', () => {
@@ -287,9 +287,15 @@
       winnerTitle.textContent = data.winners.length === 1 ? '🎉 Winner 🎉' : '🎉 Winners 🎉';
       winnerList.innerHTML = '';
 
+      const winnerCount = data.winners.length;
+      let fontSize = '1.4em';
+      if (winnerCount >= 7 && winnerCount <= 8) fontSize = '1.2em';
+      if (winnerCount >= 9) fontSize = '1.0em';
+
       data.winners.forEach(winner => {
         const li = document.createElement('li');
         li.textContent = winner;
+        li.style.fontSize = fontSize;
         winnerList.appendChild(li);
       });
 
