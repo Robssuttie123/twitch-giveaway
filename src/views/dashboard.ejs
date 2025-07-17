@@ -64,40 +64,41 @@
       display: none;
     }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0;
-  right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 24px;
-}
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 24px;
+    }
 
-.slider:before {
-  content: "☀️";
-  position: absolute;
-  height: 18px;
-  width: 18px;
-  left: 4px;
-  bottom: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform 0.4s, content 0.4s;
-}
+    .slider:before {
+      content: "☀️";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.4s, content 0.4s;
+    }
 
-input:checked + .slider {
-  background-color: #2ecc71;
-}
+    input:checked + .slider {
+      background-color: #2ecc71;
+    }
 
-input:checked + .slider:before {
-  transform: translateX(26px);
-  content: "🌙";
-}
+    input:checked + .slider:before {
+      transform: translateX(26px);
+      content: "🌙";
+    }
+
     .dashboard-content {
       margin-top: 2em;
       width: 100%;
@@ -252,6 +253,13 @@ input:checked + .slider:before {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
     }
+
+    #koFiContainer {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
@@ -268,21 +276,20 @@ input:checked + .slider:before {
   <div class="dashboard-content">
     <div class="entry-list-box">
       <div class="entries-count">Entries: <%= entries.length %></div>
-	<ul class="entry-list">
-	  <% if (entries.length === 0) { %>
-	    <li class="no-entries">No entries yet</li>
-	  <% } else { %>
-	    <% entries.forEach(entry => { %>
-	      <li style="display: flex; justify-content: space-between; align-items: center;">
-	        <span><%= entry.username %></span>
-	        <form action="/dashboard/kick/<%= entry.username %>" method="POST" style="margin: 0;">
-	          <button type="submit" class="kick-button">Kick</button>
-	        </form>
-	      </li>
-	    <% }) %>
-	  <% } %>
-	</ul>
-	</ul>
+      <ul class="entry-list">
+        <% if (entries.length === 0) { %>
+          <li class="no-entries">No entries yet</li>
+        <% } else { %>
+          <% entries.forEach(entry => { %>
+            <li>
+              <span><%= entry.username %></span>
+              <form action="/dashboard/kick/<%= entry.username %>" method="POST" style="margin: 0;">
+                <button type="submit" class="kick-button">Kick</button>
+              </form>
+            </li>
+          <% }) %>
+        <% } %>
+      </ul>
     </div>
 
     <div class="button-row">
@@ -341,6 +348,8 @@ input:checked + .slider:before {
     <p style="margin-top: 1em;">Created by Robssuttie123</p>
   </footer>
 
+  <div id="koFiContainer"></div>
+
   <div id="copyToast" class="copy-toast">Overlay URL copied!</div>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -348,43 +357,33 @@ input:checked + .slider:before {
     const socket = io();
     socket.emit('joinRoom', '<%= encryptedTwitchId %>');
 
-	socket.on('entryUpdate', (data) => {
-	  const list = document.querySelector('.entry-list');
-	  const noEntries = document.querySelector('.no-entries');
-	  if (noEntries) noEntries.remove();
-	
-	  const li = document.createElement('li');
-	
-	  // Apply same layout as EJS-rendered entries
-	  li.classList.add('entry-item'); // Optional for future styling
-	
-	  // Add username text
-	  const nameSpan = document.createElement('span');
-	  nameSpan.textContent = data.entry;
-	
-	  // Kick button form
-	  const form = document.createElement('form');
-	  form.action = `/dashboard/kick/${encodeURIComponent(data.entry)}`;
-	  form.method = 'POST';
-	  form.style.margin = '0';
-	
-	  const btn = document.createElement('button');
-	  btn.type = 'submit';
-	  btn.className = 'kick-button';
-	  btn.textContent = 'Kick';
-	
-	  form.appendChild(btn);
-	
-	  // Add to entry <li>
-	  li.appendChild(nameSpan);
-	  li.appendChild(form);
-	
-	  list.appendChild(li);
-	
-	  // Update count
-	  const count = document.querySelector('.entries-count');
-	  count.textContent = `Entries: ${list.children.length}`;
-	});
+    socket.on('entryUpdate', (data) => {
+      const list = document.querySelector('.entry-list');
+      const noEntries = document.querySelector('.no-entries');
+      if (noEntries) noEntries.remove();
+
+      const li = document.createElement('li');
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = data.entry;
+
+      const form = document.createElement('form');
+      form.action = `/dashboard/kick/${encodeURIComponent(data.entry)}`;
+      form.method = 'POST';
+      form.style.margin = '0';
+
+      const btn = document.createElement('button');
+      btn.type = 'submit';
+      btn.className = 'kick-button';
+      btn.textContent = 'Kick';
+
+      form.appendChild(btn);
+      li.appendChild(nameSpan);
+      li.appendChild(form);
+      list.appendChild(li);
+
+      const count = document.querySelector('.entries-count');
+      count.textContent = `Entries: ${list.children.length}`;
+    });
 
     socket.on('winnersAnnounced', (data) => {
       data.winners.forEach(winner => {
@@ -423,14 +422,12 @@ input:checked + .slider:before {
       }, 2000);
     }
 
-    // Load dark mode preference
     const isDark = localStorage.getItem('darkMode') === 'true';
     if (isDark) {
       document.body.classList.add('dark');
       document.getElementById('darkModeSwitch').checked = true;
     }
 
-    // Handle toggle
     document.getElementById('darkModeSwitch').addEventListener('change', function () {
       if (this.checked) {
         document.body.classList.add('dark');
@@ -440,7 +437,12 @@ input:checked + .slider:before {
         localStorage.setItem('darkMode', 'false');
       }
     });
+  </script>
 
+  <script src="https://storage.ko-fi.com/cdn/widget/Widget_2.js"></script>
+  <script>
+    kofiwidget2.init('Support hosting and developing', '#428ed7', 'Q5Q51I7LYK');
+    kofiwidget2.draw(document.getElementById('koFiContainer'));
   </script>
 </body>
 </html>
