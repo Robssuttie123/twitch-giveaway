@@ -144,6 +144,359 @@
     .overlay-branding a:hover {
       text-decoration: underline;
     }
+
+    #widgetContainer {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div id="winnerBanner">
+    <div id="winnerTitle"></div>
+    <ul id="winnerList"></ul>
+  </div>
+
+  <div class="overlay-branding">Running on <a href="https://thesimplegiveaway.com" target="_blank">TheSimpleGiveaway.com</a></div>
+  <div class="entry-count" id="entryCount">
+    <span id="commandText"></span><span class="divider-dot">—</span>Entries: 0
+  </div>
+  <div class="divider"></div>
+  <div class="user-list" id="userList"></div>
+  <div id="pageIndicator" class="page-indicator"></div>
+
+  <div id="widgetContainer"></div> <!-- Ko-fi Button Container -->
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io(window.location.origin);
+    const encryptedId = '<%= twitchId %>';
+
+    const userList = document.getElementById('userList');
+    const entryCount = document.getElementById('entryCount');
+    const commandText = document.getElementById('commandText');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const winnerBanner = document.getElementById('winnerBanner');
+    const winnerTitle = document.getElementById('winnerTitle');
+    const winnerList = document.getElementById('winnerList');
+
+    const seen = new Set();
+    const entries = [];
+    const entriesPerPage = 40;
+    let currentPage = 0;
+    let pageInterval;
+
+    function renderPage(pageIndex) {
+      userList.innerHTML = '';
+      const start = pageIndex * entriesPerPage;
+      const end = start + entriesPerPage;
+      const pageEntries = entries.slice(start, end);
+
+      pageEntries.forEach(name => {
+        const span = document.createElement('span');
+        span.className = 'user';
+        span.textContent = name;
+        userList.appendChild(span);
+      });
+
+      entryCount.innerHTML = `
+        <span id="commandText">${commandText.textContent}</span>
+        <span class="divider-dot">—</span>
+        Entries: ${entries.length}
+      `;
+
+      if (entries.length > entriesPerPage) {
+        const totalPages = Math.ceil(entries.length / entriesPerPage);
+        pageIndicator.textContent = `Page ${pageIndex + 1} of ${totalPages}`;
+        pageIndicator.style.display = 'block';
+      } else {
+        pageIndicator.style.display = 'none';
+      }
+    }
+
+    function startAutoPaging() {
+      if (pageInterval) clearInterval(pageInterval);
+      const totalPages = Math.ceil(entries.length / entriesPerPage);
+
+      if (entries.length <= entriesPerPage || totalPages <= 1) {
+        renderPage(0);
+        return;
+      }
+
+      currentPage = 0;
+      renderPage(currentPage);
+
+      pageInterval = setInterval(() => {
+        currentPage = (currentPage + 1) % totalPages;
+        renderPage(currentPage);
+      }, 10000);
+    }
+
+    function refetchOverlayData() {
+      fetch(`/api/overlay/${encryptedId}/entries`)
+        .then(res => res.json())
+        .then(data => {
+          seen.clear();
+          entries.length = 0;
+
+          if (data.command) {
+            commandText.textContent = data.command;
+          }
+
+          data.entries.forEach(name => {
+            if (!seen.has(name)) {
+              seen.add(name);
+              entries.push(name);
+            }
+          });
+
+          winnerBanner.style.display = 'none';
+          winnerTitle.textContent = '';
+          winnerList.innerHTML = '';
+          startAutoPaging();
+        });
+    }
+
+    function joinOverlayRoom() {
+      socket.emit('joinRoom', encryptedId);
+      refetchOverlayData();
+    }
+
+    socket.on('connect', () => {
+      console.log("🔌 Reconnected, rejoining room...");
+      joinOverlayRoom();
+    });
+
+    socket.on('entryUpdate', (data) => {
+      const name = data.entry;
+      if (seen.has(name)) return;
+      seen.add(name);
+      entries.push(name);
+      startAutoPaging();
+    });
+
+    socket.on('giveawayReset', () => {
+      refetchOverlayData();
+    });
+
+    socket.on('forceResync', () => {
+      console.log('🔁 Force re-sync received from server');
+      refetchOverlayData();
+    });
+
+    socket.on('winnersAnnounced', (data) => {
+      if (pageInterval) clearInterval(pageInterval);
+      userList.innerHTML = '';
+      entryCount.textContent = '';
+      pageIndicator.style.display = 'none';
+
+      winnerTitle.textContent = data.winners.length === 1 ? '🎉 Winner 🎉' : '🎉 Winners 🎉';
+      winnerList.innerHTML = '';
+
+      const winnerCount = data.winners.length;
+      let fontSize = '1.4em';
+      if (winnerCount >= 7 && winnerCount <= 8) fontSize = '1.2em';
+      if (winnerCount >= 9) fontSize = '1.0em';
+
+      data.winners.forEach(winner => {
+        const li = document.createElement('li');
+        li.textContent = winner;
+        li.style.fontSize = fontSize;
+        winnerList.appendChild(li);
+      });
+
+      winnerBanner.style.display = 'block';
+
+      confetti({
+        particleCount: 180,
+        spread: 100,
+        origin: { y: 0.6 }
+      });
+    });
+
+    socket.on('kickUser', (data) => {
+      const users = document.querySelectorAll('.user');
+      users.forEach(el => {
+        if (el.textContent.toLowerCase() === data.username.toLowerCase()) {
+          el.remove();
+        }
+      });
+      seen.delete(data.username.toLowerCase());
+      const index = entries.findIndex(e => e.toLowerCase() === data.username.toLowerCase());
+      if (index !== -1) entries.splice(index, 1);
+      renderPage(currentPage);
+    });
+
+    socket.on('commandUpdated', (data) => {
+      if (data.command) {
+        commandText.textContent = data.command;
+        entryCount.innerHTML = `
+          <span id="commandText">${data.command}</span>
+          <span class="divider-dot">—</span>
+          Entries: ${entries.length}
+        `;
+      }
+    });
+
+    joinOverlayRoom();
+  </script>
+
+  <!-- Ko-fi Button Script -->
+  <script src="https://storage.ko-fi.com/cdn/widget/Widget_2.js"></script>
+  <script>
+    kofiwidget2.init('Support hosting and developing', '#428ed7', 'Q5Q51I7LYK');
+    kofiwidget2.draw(document.getElementById('widgetContainer'));
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Giveaway Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      background: white;
+      font-family: 'Montserrat', sans-serif;
+      color: white;
+      font-size: 2.5em;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 2em;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .entry-count {
+      font-weight: bold;
+      margin-bottom: 0.3em;
+      text-shadow: 0 0 6px rgba(0,0,0,0.6);
+    }
+
+    .divider-dot {
+      margin: 0 0.5em;
+      font-weight: normal;
+      opacity: 0.8;
+    }
+
+    .divider {
+      width: 60%;
+      height: 4px;
+      background: linear-gradient(90deg, #a64ff0, #d77aff, #a64ff0);
+      border-radius: 2px;
+      margin-bottom: 1em;
+      box-shadow: 0 0 10px #a64ff0, 0 0 20px #a64ff0;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 10px #a64ff0, 0 0 20px #a64ff0;
+      }
+      50% {
+        box-shadow: 0 0 15px #d77aff, 0 0 30px #d77aff;
+      }
+    }
+
+    .user-list {
+      align-items: flex-start;
+      align-content: flex-start;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.6em 1em;
+      max-width: 90%;
+      font-size: 0.9em;
+      transition: opacity 0.4s ease;
+      min-height: 8em;
+    }
+
+    .user {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 0.3em 0.8em;
+      border-radius: 4px;
+      font-size: 1em;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+      text-shadow: 0 0 5px rgba(0,0,0,0.6);
+      animation: popIn 0.4s ease-out forwards;
+      opacity: 0;
+      transform: scale(0.8);
+      vertical-align: middle;
+    }
+
+    @keyframes popIn {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    #winnerBanner {
+      display: none;
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    #winnerTitle {
+      color: white;
+      font-size: 1.8em;
+      font-weight: bold;
+      margin-bottom: 0.4em;
+    }
+
+    #winnerList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #winnerList li {
+      color: gold;
+      font-weight: bold;
+      margin: 0.2em 0;
+    }
+
+    .page-indicator {
+      font-size: 0.6em;
+      color: white;
+      text-shadow: 0 0 6px rgba(0,0,0,0.5);
+      margin-top: 0.4em;
+    }
+
+    .overlay-branding {
+      font-size: 0.8em;
+      color: white;
+      margin-bottom: 0.5em;
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .overlay-branding a {
+      color: #ffd700;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .overlay-branding a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
