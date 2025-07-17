@@ -267,12 +267,10 @@
       transform: translate(-50%, -50%) scale(1);
     }
 
-    #koFiContainer {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      z-index: 1000;
-    }
+      #koFiContainer {
+        margin-left: auto;
+      }
+
   </style>
 </head>
 <body>
@@ -359,7 +357,7 @@
       <button type="submit">Logout</button>
     </form>
   
-    <div class="footer-bottom">
+    <div style="display: flex; justify-content: center; align-items: center; margin-top: 1.5em; flex-wrap: wrap; gap: 1em; width: 100%;">
       <p style="margin: 0;">Created by Robssuttie123</p>
       <div id="koFiContainer"></div>
     </div>
