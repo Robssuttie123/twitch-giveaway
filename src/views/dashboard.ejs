@@ -341,11 +341,15 @@
         <button type="button" onclick="copyRealUrl()">Copy</button>
       </div>
     </div>
-
+  
     <form action="/logout" method="POST">
       <button type="submit">Logout</button>
     </form>
-    <p style="margin-top: 1em;">Created by Robssuttie123</p>
+  
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1em; flex-wrap: wrap; margin-top: 1em;">
+      <p style="margin: 0;">Created by Robssuttie123</p>
+      <div id="koFiContainer" style="margin: 0;"></div>
+    </div>
   </footer>
 
   <div id="koFiContainer"></div>
@@ -441,7 +445,7 @@
 
   <script src="https://storage.ko-fi.com/cdn/widget/Widget_2.js"></script>
   <script>
-    kofiwidget2.init('Support hosting and developing', '#428ed7', 'Q5Q51I7LYK');
+    kofiwidget2.init('Support hosting and development', '#428ed7', 'Q5Q51I7LYK');
     kofiwidget2.draw(document.getElementById('koFiContainer'));
   </script>
 </body>
