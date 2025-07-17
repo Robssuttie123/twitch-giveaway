@@ -266,7 +266,7 @@
       if (seen.has(name)) return;
       seen.add(name);
       entries.push(name);
-      renderPage(currentPage);
+      startAutoPaging(); // ✅ Fixed: Restart paging to account for added entries
     });
 
     socket.on('giveawayReset', () => {
