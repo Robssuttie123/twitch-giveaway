@@ -346,22 +346,25 @@
     <% } %>
   </div>
 
-  <footer>
-    <div style="margin-bottom: 1.5em;">
-      <p>Your OBS Overlay URL:</p>
-      <div class="overlay-box">
-        <input type="password" id="displayMasked" value="https://thesimplegiveaway.com/overlay/<%= encryptedTwitchId %>" readonly>
-        <input type="hidden" id="realOverlayUrl" value="https://thesimplegiveaway.com/overlay/<%= encryptedTwitchId %>">
-        <button type="button" onclick="copyRealUrl()">Copy</button>
+    <footer>
+      <div style="margin-bottom: 1.5em;">
+        <p>Your OBS Overlay URL:</p>
+        <div class="overlay-box">
+          <input type="password" id="displayMasked" value="https://thesimplegiveaway.com/overlay/<%= encryptedTwitchId %>" readonly>
+          <input type="hidden" id="realOverlayUrl" value="https://thesimplegiveaway.com/overlay/<%= encryptedTwitchId %>">
+          <button type="button" onclick="copyRealUrl()">Copy</button>
+        </div>
       </div>
-    </div>
-  
-    <form action="/logout" method="POST">
-      <button type="submit">Logout</button>
-    </form>
-  
-    <p style="margin-top: 1em;">Created by Robssuttie123</p>
-  </footer>
+    
+      <form action="/logout" method="POST">
+        <button type="submit">Logout</button>
+      </form>
+    
+      <div class="footer-bottom">
+        <p style="margin: 0 auto;">Created by Robssuttie123</p>
+        <div id="koFiContainer"></div>
+      </div>
+    </footer>
 
   <div id="copyToast" class="copy-toast">Overlay URL copied!</div>
 
@@ -451,7 +454,6 @@
       }
     });
   </script>
-  <div id="koFiContainer"></div>
   <script src="https://storage.ko-fi.com/cdn/widget/Widget_2.js"></script>
   <script>
     kofiwidget2.init('Support hosting and development', '#428ed7', 'Q5Q51I7LYK');
