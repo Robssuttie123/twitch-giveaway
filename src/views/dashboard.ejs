@@ -99,6 +99,38 @@
       content: "🌙";
     }
 
+    .kofi-button-container {
+      position: fixed;
+      bottom: 1em;
+      right: 1em;
+      z-index: 1000;
+    }
+    
+    .kofi-button-container a {
+      display: inline-block;
+      padding: 0.5em 1em;
+      font-size: 1em;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      text-decoration: none;
+      font-family: 'Montserrat', sans-serif;
+      transition: background-color 0.3s;
+    }
+    
+    .kofi-button-container a:hover {
+      background-color: #2980b9;
+    }
+    
+    body.dark .kofi-button-container a {
+      background-color: #333;
+      color: #f0f0f0;
+    }
+    
+    body.dark .kofi-button-container a:hover {
+      background-color: #444;
+    }
+
     .dashboard-content {
       margin-top: 2em;
       width: 100%;
@@ -452,5 +484,12 @@
       }
     });
   </script>
+
+<div class="kofi-button-container">
+  <a href="https://ko-fi.com/thesimplegiveaway" target="_blank" rel="noopener noreferrer">
+    🎁 Support hosting and development
+  </a>
+</div>
+
 </body>
 </html>
