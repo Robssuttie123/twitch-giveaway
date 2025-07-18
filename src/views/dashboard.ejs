@@ -234,14 +234,19 @@
       align-items: center;
     }
     
-    .footer-bottom {
-      width: 100%;
-      max-width: 800px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 1.5em;
+      .footer-bottom {
+        width: 100%;
+        max-width: 800px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+
+        #koFiContainer {
+      position: absolute;
+      right: 0;
+      bottom: 0;
     }
 
     .copy-toast {
@@ -265,13 +270,6 @@
     .copy-toast.show {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
-    }
-
-    #koFiContainer {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1000;
     }
 
   </style>
@@ -361,7 +359,8 @@
       </form>
     
       <div class="footer-bottom">
-        <p>Created by Robssuttie123</p>
+        <p style="margin: 0 auto;">Created by Robssuttie123</p>
+        <div id="koFiContainer"></div>
       </div>
     </footer>
 
