@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Overlay Instructions</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-gradient-light: linear-gradient(135deg, #4facfe, #8e44ad);
+      --bg-gradient-dark: linear-gradient(135deg, #2c3e50, #000000);
+      --text-color-light: white;
+      --text-color-dark: #f0f0f0;
+      --input-bg-dark: #333;
+      --input-color-dark: #f0f0f0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Montserrat', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-color-light);
+      background: var(--bg-gradient-light);
+      transition: background 0.5s, color 0.3s;
+      text-align: center;
+    }
+
+    body.dark {
+      background: var(--bg-gradient-dark);
+      color: var(--text-color-dark);
+    }
+
+    h1 {
+      margin-top: 2em;
+      font-size: 2.5em;
+    }
+
+    .dark-mode-toggle {
+      position: absolute;
+      top: 1em;
+      right: 1em;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      display: none;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      content: "☀️";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.4s, content 0.4s;
+    }
+
+    input:checked + .slider {
+      background-color: #2ecc71;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+      content: "🌙";
+    }
+
+    .instructions-container {
+      margin-top: 3em;
+      max-width: 700px;
+      padding: 1em;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+    }
+
+    body.dark .instructions-container {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .instructions-container p {
+      font-size: 1.1em;
+      line-height: 1.6em;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 2em 1em 1em;
+      font-size: 0.9em;
+      opacity: 0.8;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .footer-bottom {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      margin-top: 1em;
+    }
+
+    .kofi-button-container {
+      position: fixed;
+      bottom: 1em;
+      right: 1em;
+      z-index: 1000;
+    }
+
+    .kofi-button-container a {
+      display: inline-block;
+      padding: 0.3em 0.8em;
+      font-size: 0.85em;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      text-decoration: none;
+      font-family: 'Montserrat', sans-serif;
+      transition: background-color 0.3s;
+    }
+
+    .kofi-button-container a:hover {
+      background-color: #2980b9;
+    }
+
+    body.dark .kofi-button-container a {
+      background-color: #333;
+      color: #f0f0f0;
+    }
+
+    body.dark .kofi-button-container a:hover {
+      background-color: #444;
+    }
+  </style>
+</head>
+<body>
+  <!-- Dark Mode Toggle -->
+  <div class="dark-mode-toggle">
+    <label class="toggle-switch">
+      <input type="checkbox" id="darkModeSwitch">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <h1>Overlay Setup Instructions</h1>
+
+  <div class="instructions-container">
+    <p>To display your live giveaway on stream:</p>
+    <ol style="text-align: left;">
+      <li>Open OBS Studio.</li>
+      <li>Click the <strong>+</strong> button under <strong>Sources</strong>.</li>
+      <li>Select <strong>Browser</strong> and click <strong>OK</strong>.</li>
+      <li>Paste your Overlay URL into the <strong>URL</strong> field.<br>It looks like: <code>https://thesimplegiveaway.com/overlay/your-code</code></li>
+      <li>Set the width to <strong>1920</strong> and height to <strong>1080</strong>.</li>
+      <li>Click <strong>OK</strong> to add it to your scene.</li>
+    </ol>
+    <p>Now, when you run a giveaway, entries and winners will appear on your stream automatically!</p>
+  </div>
+
+  <footer>
+    <div class="footer-bottom">
+      <p style="margin: 0 auto;">Created by Robssuttie123</p>
+    </div>
+  </footer>
+
+  <!--
+  <div class="kofi-button-container">
+    <a href="https://ko-fi.com/thesimplegiveaway" target="_blank" rel="noopener noreferrer">
+      🎁 Support Hosting and Development
+    </a>
+  </div>
+  -->
+
+  <script>
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+      document.body.classList.add('dark');
+      document.getElementById('darkModeSwitch').checked = true;
+    }
+
+    document.getElementById('darkModeSwitch').addEventListener('change', function () {
+      if (this.checked) {
+        document.body.classList.add('dark');
+        localStorage.setItem('darkMode', 'true');
+      } else {
+        document.body.classList.remove('dark');
+        localStorage.setItem('darkMode', 'false');
+      }
+    });
+  </script>
+</body>
+</html>
