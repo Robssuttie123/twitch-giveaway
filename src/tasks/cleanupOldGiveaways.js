@@ -22,12 +22,17 @@ cron.schedule('0 0 * * *', async () => {
 
     const oldIds = oldGiveaways.map(g => g.id);
 
-    // Delete entries first (foreign key constraint)
+    // Delete kicked users linked to old giveaways
+    await prisma.kickedUser.deleteMany({
+      where: { giveawayId: { in: oldIds } }
+    });
+
+    // Delete entries linked to old giveaways
     await prisma.entry.deleteMany({
       where: { giveawayId: { in: oldIds } }
     });
 
-    // Then delete the giveaways
+    // Finally, delete the giveaways
     await prisma.giveaway.deleteMany({
       where: { id: { in: oldIds } }
     });
