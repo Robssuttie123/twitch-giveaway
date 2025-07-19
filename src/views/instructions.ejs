@@ -118,6 +118,32 @@
       line-height: 1.6em;
     }
 
+    .back-button {
+      display: inline-block;
+      margin-top: 2em;
+      padding: 0.5em 1em;
+      font-size: 1em;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      text-decoration: none;
+      font-family: 'Montserrat', sans-serif;
+      transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+      background-color: #2980b9;
+    }
+
+    body.dark .back-button {
+      background-color: var(--input-bg-dark);
+      color: var(--input-color-dark);
+    }
+
+    body.dark .back-button:hover {
+      background-color: #444;
+    }
+
     footer {
       margin-top: auto;
       padding: 2em 1em 1em;
@@ -189,12 +215,14 @@
       <li>Open OBS Studio.</li>
       <li>Click the <strong>+</strong> button under <strong>Sources</strong>.</li>
       <li>Select <strong>Browser</strong> and click <strong>OK</strong>.</li>
-      <li>Paste your Overlay URL into the <strong>URL</strong> field.<br>It looks like: <code>https://thesimplegiveaway.com/overlay/your-code</code></li>
+      <li>Paste your Overlay URL into the <strong>URL</strong> field.</li>
       <li>Set the width to <strong>1920</strong> and height to <strong>1080</strong>.</li>
-      <li>Click <strong>OK</strong> to add it to your scene.</li>
+      <li>Click <strong>OK</strong> to add it to your scene, you can now size it accordingly to fit your scene.</li>
     </ol>
-    <p>Now, when you run a giveaway, entries and winners will appear on your stream automatically!</p>
+    <p>Now when you run a giveaway, entries and winners will appear on your stream automatically!</p>
   </div>
+
+  <a href="/dashboard" class="back-button">← Back to Dashboard</a>
 
   <footer>
     <div class="footer-bottom">
