@@ -15,6 +15,10 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
     where: { twitchId: req.user.twitchId }
   });
 
+router.get('/instructions', (req, res) => {
+  res.render('instructions');
+  });
+
   if (!user) return res.redirect('/auth/twitch');
 
   const latestGiveaway = await prisma.giveaway.findFirst({
