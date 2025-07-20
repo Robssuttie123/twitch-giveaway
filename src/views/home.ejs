@@ -93,6 +93,39 @@
       font-size: 1.4em;
       margin-right: 0.2em;
     }
+
+    .kofi-button-container {
+      position: fixed;
+      bottom: 1em;
+      right: 1em;
+      z-index: 1000;
+    }
+
+    .kofi-button-container a {
+      display: inline-block;
+      padding: 0.3em 0.8em;
+      font-size: 0.85em;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      text-decoration: none;
+      font-family: 'Montserrat', sans-serif;
+      transition: background-color 0.3s;
+    }
+
+    .kofi-button-container a:hover {
+      background-color: #2980b9;
+    }
+
+    body.dark .kofi-button-container a {
+      background-color: #333;
+      color: #f0f0f0;
+    }
+
+    body.dark .kofi-button-container a:hover {
+      background-color: #444;
+    }
+
   </style>
 </head>
 <body>
@@ -105,5 +138,12 @@
     <a href="/privacy" style="color: white; text-decoration: underline;">Privacy & Terms of Service</a>
   </p>
 </footer>
+
+  <div class="kofi-button-container">
+    <a href="https://streamelements.com/robssuttie123/tip" target="_blank" rel="noopener noreferrer">
+      🎁 Support Hosting and Development
+    </a>
+  </div>
+
 </body>
 </html>
