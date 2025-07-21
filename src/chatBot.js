@@ -52,7 +52,7 @@ async function connectClient(user, twitchUsername) {
     await client.connect();
     return client;
   } catch (err) {
-    if (err.message.includes('Login authentication failed')) {
+    if (err?.message?.includes('Login authentication failed')) {
       console.warn(`⚠️ Token expired for ${twitchUsername}. Attempting refresh...`);
       const newToken = await refreshTwitchToken(user);
 
@@ -67,7 +67,7 @@ async function connectClient(user, twitchUsername) {
         return null;
       }
     } else {
-      console.error(`❌ Failed to connect to chat for ${twitchUsername}`, err);
+      console.error(`❌ Failed to connect to chat for ${twitchUsername}`, err?.message || err);
       return null;
     }
   }
