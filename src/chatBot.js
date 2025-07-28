@@ -6,6 +6,20 @@ const { getIO } = require('./socket');
 const { encrypt } = require('./utils/crypto');
 
 const connectedClients = {};
+const lockedGiveaways = new Set(); 
+
+// Lock control functions
+function lockGiveaway(userId) {
+  lockedGiveaways.add(userId);
+}
+
+function unlockGiveaway(userId) {
+  lockedGiveaways.delete(userId);
+}
+
+function isGiveawayLocked(userId) {
+  return lockedGiveaways.has(userId);
+}
 
 async function refreshTwitchToken(user) {
   try {
@@ -96,6 +110,11 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
     const freshUser = await prisma.user.findUnique({ where: { twitchId } });
     if (!freshUser) return;
 
+    // ✅ Check if giveaway is locked (no new entries allowed)
+    if (isGiveawayLocked(freshUser.id)) {
+      return; // Ignore new entries
+    }
+
     const expected = freshUser.command.toLowerCase();
     if (command !== expected) return;
 
@@ -115,7 +134,7 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
       return;
     }
 
-    // ✅ Check for existing entry (redundant but safe)
+    // ✅ Check for existing entry
     const alreadyEntered = await prisma.entry.findFirst({
       where: {
         giveawayId: activeGiveaway.id,
@@ -161,5 +180,7 @@ function stopChatListenerForStreamer(twitchUsername) {
 
 module.exports = {
   startChatListenerForStreamer,
-  stopChatListenerForStreamer
+  stopChatListenerForStreamer,
+  lockGiveaway,
+  unlockGiveaway
 };
