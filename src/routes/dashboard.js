@@ -6,7 +6,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { getIO } = require('../socket');
 const { sampleSize } = require('lodash');
-const { startChatListenerForStreamer, stopChatListenerForStreamer } = require('../chatBot');
+const { startChatListenerForStreamer, stopChatListenerForStreamer, lockGiveaway, unlockGiveaway } = require('../chatBot'); // ✅ Added lock/unlock
 const { encrypt } = require('../utils/crypto');
 
 // GET /dashboard
@@ -78,6 +78,9 @@ router.post('/dashboard/command', postLimiter, async (req, res) => {
       })
     ]);
 
+    // ✅ Unlock on set command
+    unlockGiveaway(userId);
+
     const io = getIO();
     const encryptedTwitchId = encrypt(twitchId);
     io.to(encryptedTwitchId).emit('giveawayReset');
@@ -135,6 +138,9 @@ router.post('/dashboard/restart', postLimiter, async (req, res) => {
       }
     });
 
+    // ✅ Unlock on restart
+    unlockGiveaway(userId);
+
     const io = getIO();
     const encryptedTwitchId = encrypt(twitchId);
     io.to(encryptedTwitchId).emit('giveawayReset');
@@ -169,15 +175,12 @@ router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) =
     const lowerName = username.toLowerCase();
 
     await prisma.$transaction([
-      // Delete the user from the entries list
       prisma.entry.deleteMany({
         where: {
           giveawayId: activeGiveaway.id,
           username: lowerName
         }
       }),
-
-      // Insert into kickedUser table
       prisma.kickedUser.upsert({
         where: {
           giveawayId_username: {
@@ -185,7 +188,7 @@ router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) =
             username: lowerName
           }
         },
-        update: {}, // No update needed if they already exist
+        update: {},
         create: {
           giveawayId: activeGiveaway.id,
           username: lowerName
@@ -203,7 +206,6 @@ router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) =
     res.redirect('/dashboard');
   }
 });
-
 
 // POST /dashboard/pick-winners
 router.post('/dashboard/pick-winners', postLimiter, async (req, res) => {
@@ -235,6 +237,9 @@ router.post('/dashboard/pick-winners', postLimiter, async (req, res) => {
     const winners = sampleSize(latestGiveaway.entries, numWinners);
     req.session.winners = winners.map(w => w.username);
 
+    // ✅ Lock on pick winners
+    lockGiveaway(userId);
+
     const io = getIO();
     const encryptedTwitchId = encrypt(twitchId);
 
@@ -248,6 +253,20 @@ router.post('/dashboard/pick-winners', postLimiter, async (req, res) => {
   } catch (err) {
     console.error("❌ Failed to pick winners:", err);
     req.session.warning = "Something went wrong when picking winners.";
+    res.redirect('/dashboard');
+  }
+});
+
+// POST /logout (Unlock on logout)
+router.post('/logout', ensureAuthenticated, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    unlockGiveaway(userId); // ✅ Unlock on logout
+    req.logout(() => {
+      res.redirect('/');
+    });
+  } catch (err) {
+    console.error("❌ Failed to log out:", err);
     res.redirect('/dashboard');
   }
 });
