@@ -8,6 +8,9 @@ const { encrypt } = require('./utils/crypto');
 const connectedClients = {};
 const lockedGiveaways = new Set(); 
 
+// 🔄 Ensure locks are cleared on server restart
+lockedGiveaways.clear();
+
 // Lock control functions
 function lockGiveaway(userId) {
   lockedGiveaways.add(userId);
