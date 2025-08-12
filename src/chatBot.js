@@ -175,9 +175,14 @@ async function startChatListenerForStreamer(twitchUsername, twitchId) {
 function stopChatListenerForStreamer(twitchUsername) {
   const client = connectedClients[twitchUsername];
   if (client) {
-    client.disconnect();
+    client.disconnect()
+      .then(() => {
+        console.log(`🔌 Disconnected chat listener for ${twitchUsername}`);
+      })
+      .catch(err => {
+        console.warn(`⚠️ Failed to disconnect chat listener for ${twitchUsername}: ${err.message}`);
+      });
     delete connectedClients[twitchUsername];
-    console.log(`🔌 Disconnected chat listener for ${twitchUsername}`);
   }
 }
 
