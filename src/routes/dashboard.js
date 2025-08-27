@@ -15,8 +15,8 @@ router.get('/dashboard', ensureAuthenticated, async (req, res) => {
     where: { twitchId: req.user.twitchId }
   });
 
-router.get('/instructions', (req, res) => {
-  res.render('instructions');
+  router.get('/instructions', (req, res) => {
+    res.render('instructions');
   });
 
   if (!user) return res.redirect('/auth/twitch');
@@ -198,7 +198,15 @@ router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) =
 
     const io = getIO();
     const encryptedTwitchId = encrypt(twitchId);
-    io.to(encryptedTwitchId).emit('kickUser', { username: lowerName });
+
+    // ✅ Instead of only emitting a single kicked user, send the updated full list
+    const updatedEntries = await prisma.entry.findMany({
+      where: { giveawayId: activeGiveaway.id }
+    });
+
+    io.to(encryptedTwitchId).emit('entriesSynced', {
+      entries: updatedEntries.map(e => e.username)
+    });
 
     res.redirect('/dashboard');
   } catch (err) {
