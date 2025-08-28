@@ -6,17 +6,18 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { getIO } = require('../socket');
 const { sampleSize } = require('lodash');
-const { startChatListenerForStreamer, stopChatListenerForStreamer, lockGiveaway, unlockGiveaway } = require('../chatBot'); // ✅ Added lock/unlock
+const { startChatListenerForStreamer, stopChatListenerForStreamer, lockGiveaway, unlockGiveaway } = require('../chatBot');
 const { encrypt } = require('../utils/crypto');
+
+// Standalone route (was nested before)
+router.get('/instructions', (req, res) => {
+  res.render('instructions');
+});
 
 // GET /dashboard
 router.get('/dashboard', ensureAuthenticated, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { twitchId: req.user.twitchId }
-  });
-
-  router.get('/instructions', (req, res) => {
-    res.render('instructions');
   });
 
   if (!user) return res.redirect('/auth/twitch');
@@ -78,7 +79,7 @@ router.post('/dashboard/command', postLimiter, async (req, res) => {
       })
     ]);
 
-    // ✅ Unlock on set command
+    // Unlock on set command
     unlockGiveaway(userId);
 
     const io = getIO();
@@ -120,7 +121,7 @@ router.post('/dashboard/restart', postLimiter, async (req, res) => {
         }),
         prisma.kickedUser.deleteMany({
           where: { giveawayId: current.id }
-        }) 
+        })
       ]);
     }
 
@@ -138,7 +139,7 @@ router.post('/dashboard/restart', postLimiter, async (req, res) => {
       }
     });
 
-    // ✅ Unlock on restart
+    // Unlock on restart
     unlockGiveaway(userId);
 
     const io = getIO();
@@ -175,12 +176,14 @@ router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) =
     const lowerName = username.toLowerCase();
 
     await prisma.$transaction([
+      // remove from entries
       prisma.entry.deleteMany({
         where: {
           giveawayId: activeGiveaway.id,
           username: lowerName
         }
       }),
+      // remember as kicked
       prisma.kickedUser.upsert({
         where: {
           giveawayId_username: {
@@ -196,14 +199,13 @@ router.post('/dashboard/kick/:username', ensureAuthenticated, async (req, res) =
       })
     ]);
 
-    const io = getIO();
-    const encryptedTwitchId = encrypt(twitchId);
-
-    // ✅ Instead of only emitting a single kicked user, send the updated full list
+    // Send the fresh full list so overlay redraws accurately
     const updatedEntries = await prisma.entry.findMany({
       where: { giveawayId: activeGiveaway.id }
     });
 
+    const io = getIO();
+    const encryptedTwitchId = encrypt(twitchId);
     io.to(encryptedTwitchId).emit('entriesSynced', {
       entries: updatedEntries.map(e => e.username)
     });
@@ -245,7 +247,7 @@ router.post('/dashboard/pick-winners', postLimiter, async (req, res) => {
     const winners = sampleSize(latestGiveaway.entries, numWinners);
     req.session.winners = winners.map(w => w.username);
 
-    // ✅ Lock on pick winners
+    // Lock entries after picking winners (prevents new joiners)
     lockGiveaway(userId);
 
     const io = getIO();
@@ -265,11 +267,11 @@ router.post('/dashboard/pick-winners', postLimiter, async (req, res) => {
   }
 });
 
-// POST /logout (Unlock on logout)
+// POST /logout — also unlock
 router.post('/logout', ensureAuthenticated, async (req, res) => {
   try {
     const userId = req.user.id;
-    unlockGiveaway(userId); // ✅ Unlock on logout
+    unlockGiveaway(userId);
     req.logout(() => {
       res.redirect('/');
     });
