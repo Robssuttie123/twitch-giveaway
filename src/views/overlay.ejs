@@ -266,7 +266,7 @@
       if (seen.has(name)) return;
       seen.add(name);
       entries.push(name);
-      startAutoPaging(); // ✅ Restart paging on new entry
+      startAutoPaging();
     });
 
     socket.on('giveawayReset', () => {
@@ -308,17 +308,18 @@
       });
     });
 
-    socket.on('kickUser', (data) => {
-      const users = document.querySelectorAll('.user');
-      users.forEach(el => {
-        if (el.textContent.toLowerCase() === data.username.toLowerCase()) {
-          el.remove();
-        }
-      });
-      seen.delete(data.username.toLowerCase());
-      const index = entries.findIndex(e => e.toLowerCase() === data.username.toLowerCase());
-      if (index !== -1) entries.splice(index, 1);
-      renderPage(currentPage);
+    socket.on('entriesSynced', (data) => {
+      if (Array.isArray(data.entries)) {
+        seen.clear();
+        entries.length = 0;
+        data.entries.forEach(name => {
+          if (!seen.has(name)) {
+            seen.add(name);
+            entries.push(name);
+          }
+        });
+        startAutoPaging();
+      }
     });
 
     socket.on('commandUpdated', (data) => {
